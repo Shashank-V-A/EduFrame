@@ -25,7 +25,14 @@ class DatabaseService {
   Future<Database> _open() async {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, 'planbook.db');
-    final db = await openDatabase(path, version: 1, onCreate: _onCreate);
+    final db = await openDatabase(
+      path,
+      version: 1,
+      onConfigure: (database) async {
+        await database.execute('PRAGMA foreign_keys = ON');
+      },
+      onCreate: _onCreate,
+    );
     await _seedIfEmpty(db);
     return db;
   }

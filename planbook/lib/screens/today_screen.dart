@@ -26,17 +26,21 @@ class _TodayScreenState extends State<TodayScreen> {
   }
 
   Future<void> _load() async {
-    final today = toDateString(DateTime.now());
-    final tomorrow = addDays(today, 1);
-    final results = await Future.wait([
-      DatabaseService.instance.getPlansForDate(today),
-      DatabaseService.instance.getPlansForDate(tomorrow),
-    ]);
-    if (!mounted) return;
-    setState(() {
-      _todayPlans = results[0];
-      _tomorrowPlans = results[1];
-    });
+    try {
+      final today = toDateString(DateTime.now());
+      final tomorrow = addDays(today, 1);
+      final results = await Future.wait([
+        DatabaseService.instance.getPlansForDate(today),
+        DatabaseService.instance.getPlansForDate(tomorrow),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _todayPlans = results[0];
+        _tomorrowPlans = results[1];
+      });
+    } catch (e) {
+      debugPrint('Failed to load plans: $e');
+    }
   }
 
   Future<void> _openNew(String date) async {

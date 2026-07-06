@@ -64,12 +64,32 @@ APK location: `build/app/outputs/flutter-apk/app-release.apk`
 
 Send this file to her phone and install directly.
 
+## Troubleshooting
+
+### "Lost connection to device" in Android Studio
+
+Usually the **debugger disconnects**, not a full app crash — especially on **Pixel API 36** emulators.
+
+1. Pick **Pixel 10 API 36.1** in the device dropdown (not Windows desktop).
+2. Stop any running session (red square), then Run again.
+3. This project disables **Impeller/Vulkan** for emulator stability.
+4. If it happens again: the app may still be open on the emulator — check the emulator screen.
+5. Cold boot the emulator: **Device Manager → ⋮ → Cold Boot Now**.
+
+### Run from terminal (alternative to Android Studio)
+
+```powershell
+cd d:\Mobile-Dev\planbook
+& "C:\Users\SHASHANK V A\Downloads\flutter_windows_3.44.4-stable\flutter\bin\flutter.bat" run -d localhost:56837
+```
+
+Replace the device id with yours from `flutter devices`.
+
 ## Projects in this folder
 
 | Folder | Stack | Use |
 |--------|-------|-----|
-| `planbook/` | **Flutter** ← use this | Play Store, full native app |
-| `lesson-plan-notebook/` | Expo/React Native | Quick prototype via Expo Go |
+| `planbook/` | **Flutter** | Play Store, full native app |
 
 ---
 

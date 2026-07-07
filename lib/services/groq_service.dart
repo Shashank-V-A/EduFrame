@@ -11,7 +11,7 @@ class GroqService {
   static const _groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
   static const _model = 'llama-3.3-70b-versatile';
   static const _bundledApiKey = String.fromEnvironment('GROQ_API_KEY');
-  static const _productionProxy = 'https://server-tau-kohl.vercel.app/api/groq';
+  static const _productionProxy = 'https://eduframe.vercel.app/api/groq';
   static const _proxyUrl = String.fromEnvironment(
     'GROQ_PROXY_URL',
     defaultValue: _productionProxy,

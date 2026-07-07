@@ -36,7 +36,7 @@ cd d:\Mobile-Dev
 flutter pub get
 dart run flutter_launcher_icons
 dart run flutter_native_splash:create
-flutter build apk --release --dart-define=GROQ_PROXY_URL=https://server-tau-kohl.vercel.app/api/groq
+flutter build apk --release --dart-define=GROQ_PROXY_URL=https://eduframe.vercel.app/api/groq
 ```
 
 Output: `build/app/outputs/flutter-apk/app-release.apk`

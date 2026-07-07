@@ -18,19 +18,18 @@ Future<void> main() async {
     return true;
   };
 
-  // Open the database before first frame so startup never hits a race/crash.
   await DatabaseService.instance.database;
 
-  runApp(const PlanBookApp());
+  runApp(const EduFrameApp());
 }
 
-class PlanBookApp extends StatelessWidget {
-  const PlanBookApp({super.key});
+class EduFrameApp extends StatelessWidget {
+  const EduFrameApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PlanBook',
+      title: 'EduFrame',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
       home: const HomeShell(),

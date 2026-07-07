@@ -39,7 +39,7 @@ class PdfService {
               pw.Padding(
                 padding: const pw.EdgeInsets.only(top: 4, bottom: 16),
                 child: pw.Text(
-                  'Generated from PlanBook · ${DateTime.now().toLocal()}',
+                  'Generated from EduFrame · ${DateTime.now().toLocal()}',
                   style: const pw.TextStyle(fontSize: 11, color: PdfColors.grey600),
                 ),
               ),
@@ -62,7 +62,7 @@ class PdfService {
           pw.SizedBox(height: 24),
           pw.Center(
             child: pw.Text(
-              'Lesson Plan Notebook — your plans, organized.',
+              'EduFrame — your plans, organized.',
               style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
             ),
           ),
@@ -70,7 +70,7 @@ class PdfService {
       ),
     );
 
-    await Printing.sharePdf(bytes: await doc.save(), filename: 'lesson-plans.pdf');
+    await Printing.sharePdf(bytes: await doc.save(), filename: 'eduframe-lesson-plans.pdf');
   }
 
   static pw.Widget _planSection(LessonPlan plan) {

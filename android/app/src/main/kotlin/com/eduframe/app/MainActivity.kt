@@ -1,4 +1,4 @@
-package com.planbook.planbook
+package com.eduframe.app
 
 import io.flutter.embedding.android.FlutterActivity
 

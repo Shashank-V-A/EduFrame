@@ -69,7 +69,7 @@ class _TodayScreenState extends State<TodayScreen> {
       child: ListView(
         children: [
           ScreenHeader(
-            title: 'PlanBook',
+            title: 'EduFrame',
             subtitle: '${greeting()} Plan tonight, teach tomorrow with confidence.',
           ),
           Padding(

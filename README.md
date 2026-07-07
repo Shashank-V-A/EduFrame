@@ -1,11 +1,11 @@
-# PlanBook (Flutter)
+# EduFrame (Flutter)
 
 Lesson plan notebook for teachers — built for planning tonight, teaching tomorrow.
 
 ## Run the app
 
 ```powershell
-cd d:\Mobile-Dev\planbook
+cd d:\Mobile-Dev
 & "C:\Users\SHASHANK V A\Downloads\flutter_windows_3.44.4-stable\flutter\bin\flutter.bat" run
 ```
 
@@ -79,18 +79,16 @@ Usually the **debugger disconnects**, not a full app crash — especially on **P
 ### Run from terminal (alternative to Android Studio)
 
 ```powershell
-cd d:\Mobile-Dev\planbook
+cd d:\Mobile-Dev
 & "C:\Users\SHASHANK V A\Downloads\flutter_windows_3.44.4-stable\flutter\bin\flutter.bat" run -d localhost:56837
 ```
 
 Replace the device id with yours from `flutter devices`.
 
-## Projects in this folder
+## Project
 
-| Folder | Stack | Use |
-|--------|-------|-----|
-| `planbook/` | **Flutter** | Play Store, full native app |
+Flutter app **EduFrame** at `d:\Mobile-Dev` — open this folder in Android Studio.
 
 ---
 
-*Your plans, organized. Not a robot teacher.*
+*EduFrame — your plans, organized.*

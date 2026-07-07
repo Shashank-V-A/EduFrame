@@ -24,7 +24,7 @@ class DatabaseService {
 
   Future<Database> _open() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'planbook.db');
+    final path = join(dbPath, 'eduframe.db');
     final db = await openDatabase(
       path,
       version: 1,

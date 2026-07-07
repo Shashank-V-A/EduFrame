@@ -4,53 +4,27 @@ Secure Groq access for the mobile app. The Groq API key stays on the server.
 
 **Production URL:** `https://eduframe.vercel.app/api/groq`
 
-## Git auto-deploy (connected to EduFrame repo)
+## Git auto-deploy
 
-When Vercel is linked to `Shashank-V-A/EduFrame`, set this once in the Vercel dashboard:
+The API lives at the **repo root** (`/api/groq.js` + `/vercel.json`) so Vercel can deploy from the connected EduFrame GitHub repo without a custom root directory.
 
-**Project → Settings → General → Root Directory → `server`**
+Every push to `main` redeploys the proxy. `GROQ_API_KEY` is stored in Vercel env vars (not in git).
 
-Then every push to `main` redeploys the proxy automatically. `GROQ_API_KEY` is already stored in Vercel env vars (not in git).
+**Vercel project:** `eduframe.vercel.app` (dashboard may still show project name `server`)
 
-## Manual deploy (optional)
+## Run the Flutter app
 
-1. Install Vercel CLI: `npm i -g vercel`
-2. From this `server/` folder:
-
-```bash
-cd server
-vercel
-```
-
-3. Set the secret in Vercel:
-
-```bash
-vercel env add GROQ_API_KEY
-```
-
-4. Production proxy URL: `https://eduframe.vercel.app/api/groq`
-
-## Run the Flutter app with proxy
-
-The app uses the production proxy by default. No extra flags needed:
+The app uses the production proxy by default:
 
 ```powershell
 flutter run
 ```
 
-Override proxy URL (optional):
-
-```powershell
-flutter run --dart-define=GROQ_PROXY_URL=https://eduframe.vercel.app/api/groq
-```
-
 Release build:
 
 ```powershell
-flutter build apk --release --dart-define=GROQ_PROXY_URL=https://eduframe.vercel.app/api/groq
+flutter build apk --release
 ```
-
-The app sends the signed-in user's Google ID token. For production, verify the token on the server (optional hardening step).
 
 ## Local dev fallback
 
@@ -59,3 +33,5 @@ To bypass the proxy and call Groq directly during testing:
 ```powershell
 flutter run --dart-define=GROQ_PROXY_URL= --dart-define=GROQ_API_KEY=your_key
 ```
+
+The app sends the signed-in user's Google ID token with each proxy request.

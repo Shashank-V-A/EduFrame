@@ -5,6 +5,7 @@ import 'package:timezone/data/latest.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/models.dart';
+import '../utils/class_display.dart';
 import '../utils/date_utils.dart';
 import 'database_service.dart';
 import 'settings_service.dart';
@@ -72,7 +73,7 @@ class NotificationService {
             id: notificationId++,
             when: remindAt,
             title: 'Class in 5 minutes',
-            body: '${slot.className} (${slot.subject}) at ${formatTime12h(slot.startTime)}'
+            body: '${timetableSlotLabel(slot)} (${slot.subject}) at ${formatTime12h(slot.startTime)}'
                 '${slot.room.isNotEmpty ? ' - Room ${slot.room}' : ''}',
           );
         }
@@ -87,7 +88,7 @@ class NotificationService {
               id: notificationId++,
               when: end,
               title: 'Free period',
-              body: 'Next class: ${next.className} at ${formatTime12h(next.startTime)}',
+              body: 'Next class: ${timetableSlotLabel(next)} at ${formatTime12h(next.startTime)}',
             );
           }
         } else {
@@ -99,7 +100,7 @@ class NotificationService {
                 id: notificationId++,
                 when: end,
                 title: 'No more classes today',
-                body: 'Next class: ${tomorrowSlots.className} on ${tomorrowSlots.dayLabel} at ${formatTime12h(tomorrowSlots.startTime)}',
+                body: 'Next class: ${timetableSlotLabel(tomorrowSlots)} on ${tomorrowSlots.dayLabel} at ${formatTime12h(tomorrowSlots.startTime)}',
               );
             }
           }

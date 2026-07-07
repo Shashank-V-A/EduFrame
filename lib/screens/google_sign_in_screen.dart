@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../constants/theme.dart';
+import '../l10n/app_strings.dart';
 import '../services/auth_service.dart';
+import '../widgets/app_logo.dart';
 
 class GoogleSignInScreen extends StatefulWidget {
   const GoogleSignInScreen({super.key});
@@ -30,30 +32,44 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
   @override
   Widget build(BuildContext context) {
     final configured = AuthService.instance.isConfigured;
+    final palette = AppPalette.of(context);
+    final s = context.strings;
 
     return Scaffold(
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
+              const Spacer(),
+              const AppLogo(size: 112, borderRadius: 24),
+              const SizedBox(height: 20),
+              Text(
                 'EduFrame',
                 style: TextStyle(
                   fontSize: 34,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.primary,
+                  color: palette.primary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                s.tagline,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: palette.primary,
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Teachers must sign in with Google before using the app.',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
                   height: 1.5,
-                  color: AppColors.textSecondary,
+                  color: palette.textSecondary,
                 ),
               ),
               const SizedBox(height: 32),
@@ -72,12 +88,14 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
                 configured
                     ? 'Use your Google account to continue.'
                     : 'Google Sign-In is not configured yet.',
-                style: const TextStyle(
+                textAlign: TextAlign.center,
+                style: TextStyle(
                   fontSize: 13,
-                  color: AppColors.textMuted,
+                  color: palette.textMuted,
                   height: 1.4,
                 ),
               ),
+              const Spacer(flex: 2),
             ],
           ),
         ),

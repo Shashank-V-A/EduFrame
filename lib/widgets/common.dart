@@ -54,17 +54,23 @@ class EmptyState extends StatelessWidget {
 }
 
 class ScreenHeader extends StatelessWidget {
-  const ScreenHeader({super.key, required this.title, this.subtitle});
+  const ScreenHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.compact = false,
+  });
 
   final String title;
   final String? subtitle;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final palette = AppPalette.of(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: EdgeInsets.fromLTRB(compact ? 0 : 16, compact ? 0 : 16, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

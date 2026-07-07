@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../constants/theme.dart';
-import 'ai_assist_screen.dart';
+import '../l10n/app_strings.dart';
 import 'classes_screen.dart';
 import 'export_screen.dart';
 import 'search_screen.dart';
@@ -13,46 +13,46 @@ class MoreScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.strings;
+    final palette = AppPalette.of(context);
+
     return ListView(
       children: [
-        const ScreenHeader(
-          title: 'More',
-          subtitle: 'Classes, export, search, and settings.',
+        ScreenHeader(
+          title: s.moreTitle,
+          subtitle: s.moreSubtitle,
         ),
         _tile(
           context,
-          icon: Icons.people_outline,
-          title: 'Classes',
-          subtitle: 'Manage the classes you teach',
-          screen: const ClassesScreen(),
-        ),
-        _tile(
-          context,
-          icon: Icons.description_outlined,
-          title: 'Export PDF',
-          subtitle: 'Share lesson plans with your HOD',
-          screen: const ExportScreen(),
-        ),
-        _tile(
-          context,
-          icon: Icons.search,
-          title: 'Search plans',
-          subtitle: 'Find old lessons by keyword',
-          screen: const SearchScreen(),
-        ),
-        _tile(
-          context,
+          palette: palette,
           icon: Icons.settings_outlined,
-          title: 'Settings',
-          subtitle: 'Google account and notifications',
+          title: s.moreSettings,
+          subtitle: s.moreSettingsHint,
           screen: const SettingsScreen(),
         ),
         _tile(
           context,
-          icon: Icons.smart_toy_outlined,
-          title: 'AI Assist',
-          subtitle: 'Open the AI tools tab',
-          screen: const AiAssistScreen(),
+          palette: palette,
+          icon: Icons.people_outline,
+          title: s.moreClasses,
+          subtitle: s.moreClassesHint,
+          screen: const ClassesScreen(),
+        ),
+        _tile(
+          context,
+          palette: palette,
+          icon: Icons.description_outlined,
+          title: s.moreExport,
+          subtitle: s.moreExportHint,
+          screen: const ExportScreen(),
+        ),
+        _tile(
+          context,
+          palette: palette,
+          icon: Icons.search,
+          title: s.moreSearch,
+          subtitle: s.moreSearchHint,
+          screen: const SearchScreen(),
         ),
       ],
     );
@@ -60,6 +60,7 @@ class MoreScreen extends StatelessWidget {
 
   Widget _tile(
     BuildContext context, {
+    required AppPalette palette,
     required IconData icon,
     required String title,
     required String subtitle,
@@ -68,7 +69,7 @@ class MoreScreen extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
-        leading: Icon(icon, color: AppColors.primary),
+        leading: Icon(icon, color: palette.primary),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
         subtitle: Text(subtitle),
         trailing: const Icon(Icons.chevron_right),

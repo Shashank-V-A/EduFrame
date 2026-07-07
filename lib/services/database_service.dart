@@ -17,7 +17,7 @@ class DatabaseService {
   ''';
 
   static const _timetableSelect = '''
-    SELECT t.*, c.name as class_name, c.subject
+    SELECT t.*, c.name as class_name, c.subject, c.section
     FROM timetable_slots t
     LEFT JOIN classes c ON c.id = t.class_id
   ''';

@@ -4,6 +4,7 @@ import '../l10n/app_strings.dart';
 import '../models/models.dart';
 import '../services/database_service.dart';
 import '../utils/date_utils.dart';
+import '../widgets/app_logo.dart';
 import '../widgets/common.dart';
 import '../widgets/plan_card.dart';
 import 'plan_detail_screen.dart';
@@ -70,9 +71,22 @@ class _TodayScreenState extends State<TodayScreen> {
       onRefresh: _load,
       child: ListView(
         children: [
-          ScreenHeader(
-            title: s.appTitle,
-            subtitle: s.greetingSubtitle(greeting()),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const AppLogo(size: 56, borderRadius: 14),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: ScreenHeader(
+                    title: s.appTitle,
+                    subtitle: s.greetingSubtitle(greeting()),
+                    compact: true,
+                  ),
+                ),
+              ],
+            ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),

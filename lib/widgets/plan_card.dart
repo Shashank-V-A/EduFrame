@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../constants/theme.dart';
 import '../models/models.dart';
+import '../utils/class_display.dart';
 import '../utils/date_utils.dart';
 
 class PlanCard extends StatelessWidget {
@@ -50,7 +51,7 @@ class PlanCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      plan.className,
+                      lessonPlanClassLabel(plan),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,

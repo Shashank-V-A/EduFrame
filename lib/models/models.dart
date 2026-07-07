@@ -88,6 +88,7 @@ class TimetableSlot {
   final String room;
   final String className;
   final String subject;
+  final String section;
 
   const TimetableSlot({
     required this.id,
@@ -98,6 +99,7 @@ class TimetableSlot {
     required this.room,
     required this.className,
     required this.subject,
+    required this.section,
   });
 
   factory TimetableSlot.fromMap(Map<String, Object?> map) {
@@ -110,6 +112,7 @@ class TimetableSlot {
       room: map['room'] as String? ?? '',
       className: map['class_name'] as String? ?? 'Free period',
       subject: map['subject'] as String? ?? '',
+      section: map['section'] as String? ?? '',
     );
   }
 

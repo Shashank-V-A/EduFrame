@@ -37,55 +37,50 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Search')),
-      body: SafeArea(
-      child: Column(
-        children: [
-          const ScreenHeader(
-            title: 'Search',
-            subtitle: 'Find old plans by topic, activity, or homework.',
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: TextField(
-              onChanged: _search,
-              decoration: const InputDecoration(
-                hintText: 'Try "quadratic equations" or "group activity"',
-                prefixIcon: Icon(Icons.search),
-              ),
+    return Column(
+      children: [
+        const ScreenHeader(
+          title: 'Search plans',
+          subtitle: 'Find old plans by topic, activity, or homework.',
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: TextField(
+            onChanged: _search,
+            decoration: const InputDecoration(
+              hintText: 'Try "quadratic equations" or "group activity"',
+              prefixIcon: Icon(Icons.search),
             ),
           ),
-          const SizedBox(height: 8),
-          Expanded(
-            child: _searched && _results.isEmpty
-                ? const EmptyState(
-                    message: 'No matching plans',
-                    hint: 'Try a shorter keyword or different topic.',
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _results.length,
-                    itemBuilder: (context, index) {
-                      final plan = _results[index];
-                      return PlanCard(
-                        plan: plan,
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => PlanDetailScreen(planId: plan.id),
-                            ),
-                          );
-                          if (_query.isNotEmpty) await _search(_query);
-                        },
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-    ),
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: _searched && _results.isEmpty
+              ? const EmptyState(
+                  message: 'No matching plans',
+                  hint: 'Try a shorter keyword or different topic.',
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: _results.length,
+                  itemBuilder: (context, index) {
+                    final plan = _results[index];
+                    return PlanCard(
+                      plan: plan,
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PlanDetailScreen(planId: plan.id),
+                          ),
+                        );
+                        if (_query.isNotEmpty) await _search(_query);
+                      },
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }

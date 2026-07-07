@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../models/plan_draft.dart';
 import '../services/database_service.dart';
 import '../services/notification_service.dart';
+import '../utils/class_display.dart';
 import '../utils/date_utils.dart';
 import '../widgets/common.dart';
 import 'plan_new_screen.dart';
@@ -82,7 +83,10 @@ class _TimetableScreenState extends State<TimetableScreen> {
                   items: [
                     const DropdownMenuItem<int?>(value: null, child: Text('Free / break')),
                     ..._classes.map(
-                      (c) => DropdownMenuItem<int?>(value: c.id, child: Text(c.name)),
+                      (c) => DropdownMenuItem<int?>(
+                        value: c.id,
+                        child: Text(teachingClassWithSubject(c)),
+                      ),
                     ),
                   ],
                   onChanged: (v) => setDialogState(() => classId = v),
@@ -217,7 +221,10 @@ class _TimetableScreenState extends State<TimetableScreen> {
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
-                          title: Text(slot.className, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          title: Text(
+                            timetableSlotLabel(slot),
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
                           subtitle: Text(
                             '${formatTime12h(slot.startTime)} - ${formatTime12h(slot.endTime)}'
                             '${slot.subject.isNotEmpty ? ' | ${slot.subject}' : ''}'

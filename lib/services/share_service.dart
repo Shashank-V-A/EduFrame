@@ -1,6 +1,7 @@
 import 'package:share_plus/share_plus.dart';
 
 import '../models/models.dart';
+import '../utils/class_display.dart';
 import '../utils/date_utils.dart';
 
 class ShareService {
@@ -10,7 +11,9 @@ class ShareService {
   String formatPlanText(LessonPlan plan) {
     final buffer = StringBuffer()
       ..writeln('EduFrame - Lesson Plan')
-      ..writeln('${formatDisplayDate(plan.planDate)} | ${plan.className} | ${plan.subject}')
+      ..writeln(
+        '${formatDisplayDate(plan.planDate)} | ${lessonPlanClassLabel(plan)} | ${plan.subject}',
+      )
       ..writeln()
       ..writeln('Topic: ${plan.topic}');
 
@@ -32,12 +35,6 @@ class ShareService {
   }
 
   Future<void> sharePlan(LessonPlan plan) async {
-    await SharePlus.instance.share(
-      ShareParams(text: formatPlanText(plan), subject: plan.topic),
-    );
-  }
-
-  Future<void> sharePlanWhatsApp(LessonPlan plan) async {
     await SharePlus.instance.share(
       ShareParams(text: formatPlanText(plan), subject: plan.topic),
     );

@@ -17,11 +17,27 @@ class AppStrings {
   String get navAi => _t('AI', 'AI');
   String get navMore => _t('More', 'अधिक');
 
-  // Today
+  // More
+  String get moreTitle => _t('More', 'अधिक');
+  String get moreSubtitle =>
+      _t('Settings, classes, export, and search.', 'सेटिंग्स, कक्षाएँ, निर्यात और खोज।');
+  String get moreClasses => _t('Classes', 'कक्षाएँ');
+  String get moreClassesHint => _t('Manage the classes you teach', 'जिन कक्षाओं को आप पढ़ाते हैं उन्हें प्रबंधित करें');
+  String get moreExport => _t('Export PDF', 'PDF निर्यात');
+  String get moreExportHint =>
+      _t('Share lesson plans with your HOD', 'अपने HOD के साथ पाठ योजना साझा करें');
+  String get moreSearch => _t('Search plans', 'योजनाएँ खोजें');
+  String get moreSearchHint =>
+      _t('Find old lessons by keyword', 'कीवर्ड से पुराने पाठ खोजें');
+  String get moreSettings => _t('Settings', 'सेटिंग्स');
+  String get moreSettingsHint =>
+      _t('Google account and notifications', 'Google खाता और अनुस्मारक');
+
+  // App
   String get appTitle => _t('EduFrame', 'EduFrame');
-  String greetingSubtitle(String greeting) =>
-      _t('$greeting Plan tonight, teach tomorrow with confidence.',
-          '$greeting आज रात योजना बनाएँ, कल आत्मविश्वास से पढ़ाएँ।');
+  String get tagline =>
+      _t('Plan tonight. Teach tomorrow.', 'आज रात योजना बनाएँ, कल पढ़ाएँ।');
+  String greetingSubtitle(String greeting) => _t('$greeting $tagline', '$greeting $tagline');
   String get planForTomorrow => _t('Plan for tomorrow', 'कल के लिए योजना');
   String get planForToday => _t('Plan for today', 'आज के लिए योजना');
   String get noPlansTomorrow => _t('No plans for tomorrow yet', 'कल के लिए अभी कोई योजना नहीं');
@@ -34,7 +50,7 @@ class AppStrings {
       'यदि आज भी कक्षाएँ हैं तो योजना जोड़ें।');
 
   // Plan form
-  String get classLabel => _t('Class *', 'कक्षा *');
+  String get classLabel => _t('Class & section *', 'कक्षा और अनुभाग *');
   String get addClassFirst =>
       _t('Add a class first from More > Classes.', 'पहले अधिक > कक्षाएँ से कक्षा जोड़ें।');
   String get dateLabel => _t('Date *', 'तारीख *');
@@ -74,12 +90,11 @@ class AppStrings {
 
   // Share
   String get sharePlan => _t('Share plan', 'योजना साझा करें');
-  String get shareWhatsApp => _t('Share via WhatsApp', 'WhatsApp से साझा करें');
 
   // Settings
   String get settingsTitle => _t('Settings', 'सेटिंग्स');
   String get settingsSubtitle =>
-      _t('Account, appearance, backup, and reminders.', 'खाता, दिखावट, बैकअप और अनुस्मारक।');
+      _t('Account, appearance, and reminders.', 'खाता, दिखावट और अनुस्मारक।');
   String get darkMode => _t('Dark mode', 'डार्क मोड');
   String get hindiLabels => _t('Hindi labels', 'हिंदी लेबल');
   String get hindiLabelsHint =>

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants/theme.dart';
 import '../l10n/app_strings.dart';
 import '../models/models.dart';
+import '../utils/class_display.dart';
 import '../utils/date_utils.dart';
 
 class PlanForm extends StatelessWidget {
@@ -34,7 +35,7 @@ class PlanForm extends StatelessWidget {
           children: classes.map((cls) {
             final selected = data.classId == cls.id;
             return ChoiceChip(
-              label: Text(cls.name),
+              label: Text(teachingClassLabel(cls)),
               selected: selected,
               selectedColor: palette.primary,
               labelStyle: TextStyle(

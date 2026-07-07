@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants/theme.dart';
 import '../models/models.dart';
 import '../services/database_service.dart';
+import '../utils/class_display.dart';
 import '../widgets/common.dart';
 
 class ClassesScreen extends StatefulWidget {
@@ -48,8 +49,13 @@ class _ClassesScreenState extends State<ClassesScreen> {
 
   Future<void> _save() async {
     final name = _nameController.text.trim();
+    final section = _sectionController.text.trim();
     if (name.isEmpty) {
-      _showSnack('Enter a class name like "Class 8-A".');
+      _showSnack('Enter a class name like "10" or "Class 10".');
+      return;
+    }
+    if (section.isEmpty) {
+      _showSnack('Section is required (e.g. A, B, C).');
       return;
     }
 
@@ -58,13 +64,13 @@ class _ClassesScreenState extends State<ClassesScreen> {
         _editingId!,
         name,
         _subjectController.text,
-        _sectionController.text,
+        section,
       );
     } else {
       await DatabaseService.instance.createClass(
         name,
         _subjectController.text,
-        _sectionController.text,
+        section,
       );
     }
 
@@ -140,7 +146,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                     const SizedBox(height: 12),
                     TextField(
                       controller: _nameController,
-                      decoration: const InputDecoration(hintText: 'Class name (e.g. Class 10-A)'),
+                      decoration: const InputDecoration(hintText: 'Class (e.g. 10)'),
                     ),
                     const SizedBox(height: 8),
                     TextField(
@@ -150,7 +156,7 @@ class _ClassesScreenState extends State<ClassesScreen> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: _sectionController,
-                      decoration: const InputDecoration(hintText: 'Section (optional)'),
+                      decoration: const InputDecoration(hintText: 'Section * (e.g. A)'),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
@@ -182,11 +188,9 @@ class _ClassesScreenState extends State<ClassesScreen> {
                   side: const BorderSide(color: AppColors.border),
                 ),
                 child: ListTile(
-                  title: Text(cls.name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                  title: Text(teachingClassLabel(cls), style: const TextStyle(fontWeight: FontWeight.w700)),
                   subtitle: Text(
-                    [cls.subject, cls.section].where((s) => s.isNotEmpty).join(' · ').isEmpty
-                        ? 'No subject set'
-                        : [cls.subject, cls.section].where((s) => s.isNotEmpty).join(' · '),
+                    cls.subject.trim().isEmpty ? 'No subject set' : cls.subject.trim(),
                   ),
                   trailing: Wrap(
                     spacing: 4,

@@ -7,6 +7,7 @@ import '../services/database_service.dart';
 import '../services/groq_service.dart';
 import '../services/share_service.dart';
 import '../utils/ai_result_parser.dart';
+import '../utils/class_display.dart';
 import '../utils/date_utils.dart';
 import '../widgets/plan_form.dart';
 class PlanDetailScreen extends StatefulWidget {
@@ -303,7 +304,7 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${formatDisplayDate(plan.planDate)} · ${plan.className} · ${plan.subject}',
+                    '${formatDisplayDate(plan.planDate)} · ${lessonPlanClassLabel(plan)} · ${plan.subject}',
                     style: TextStyle(color: palette.textSecondary),
                   ),
                 ],
@@ -325,12 +326,6 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
             onPressed: () => ShareService.instance.sharePlan(plan),
             icon: const Icon(Icons.share_outlined),
             label: Text(s.sharePlan),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: () => ShareService.instance.sharePlanWhatsApp(plan),
-            icon: const Icon(Icons.chat_outlined),
-            label: Text(s.shareWhatsApp),
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(

@@ -4,7 +4,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../constants/theme.dart';
 import '../l10n/app_strings.dart';
 import '../services/auth_service.dart';
-import '../services/backup_service.dart';
 import '../services/locale_service.dart';
 import '../services/notification_service.dart';
 import '../services/settings_service.dart';
@@ -22,7 +21,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _notifications = true;
   bool _darkMode = false;
   bool _hindiLabels = false;
-  bool _busy = false;
   GoogleSignInAccount? _user;
 
   @override
@@ -46,29 +44,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  Future<void> _save() async {
-    await SettingsService.instance.setNotificationsEnabled(_notifications);
-    await ThemeService.instance.setDarkMode(_darkMode);
-    await LocaleService.instance.setHindiLabels(_hindiLabels);
-    await NotificationService.instance.rescheduleFromDatabase();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.strings.saveSettings)),
-    );
+  Future<void> _setDarkMode(bool enabled) async {
+    setState(() => _darkMode = enabled);
+    await ThemeService.instance.setDarkMode(enabled);
   }
 
-  Future<void> _runBackup(Future<void> Function() action, String success) async {
-    setState(() => _busy = true);
-    try {
-      await action();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(success)));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
+  Future<void> _setHindiLabels(bool enabled) async {
+    setState(() => _hindiLabels = enabled);
+    await LocaleService.instance.setHindiLabels(enabled);
+  }
+
+  Future<void> _setNotifications(bool enabled) async {
+    setState(() => _notifications = enabled);
+    await SettingsService.instance.setNotificationsEnabled(enabled);
+    await NotificationService.instance.rescheduleFromDatabase();
   }
 
   Future<void> _logout() async {
@@ -127,109 +116,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
         SwitchListTile(
           title: Text(s.darkMode),
           value: _darkMode,
-          onChanged: (v) => setState(() => _darkMode = v),
+          onChanged: (v) => _setDarkMode(v),
         ),
         SwitchListTile(
           title: Text(s.hindiLabels),
           subtitle: Text(s.hindiLabelsHint),
           value: _hindiLabels,
-          onChanged: (v) => setState(() => _hindiLabels = v),
+          onChanged: (v) => _setHindiLabels(v),
         ),
         SwitchListTile(
           title: Text(s.notifications),
           subtitle: const Text('5 minutes before each period + free-period updates'),
           value: _notifications,
-          onChanged: (v) => setState(() => _notifications = v),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            s.backupRestore,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-          ),
-        ),
-        ListTile(
-          leading: Icon(Icons.cloud_upload_outlined, color: palette.primary),
-          title: Text(s.backupNow),
-          enabled: !_busy,
-          onTap: () => _runBackup(
-            BackupService.instance.uploadToGoogleDrive,
-            'Backup uploaded to Google Drive',
-          ),
-        ),
-        ListTile(
-          leading: Icon(Icons.cloud_download_outlined, color: palette.primary),
-          title: Text(s.restoreBackup),
-          enabled: !_busy,
-          onTap: () async {
-            final ok = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Restore backup?'),
-                content: const Text(
-                  'This replaces all current classes, plans, and timetable data with the latest Drive backup.',
-                ),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                  ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Restore')),
-                ],
-              ),
-            );
-            if (ok == true) {
-              await _runBackup(
-                BackupService.instance.restoreFromGoogleDrive,
-                'Restored from Google Drive',
-              );
-              await NotificationService.instance.rescheduleFromDatabase();
-            }
-          },
-        ),
-        ListTile(
-          leading: Icon(Icons.ios_share_outlined, color: palette.primary),
-          title: Text(s.shareBackupFile),
-          enabled: !_busy,
-          onTap: () => _runBackup(
-            BackupService.instance.shareBackupFile,
-            'Backup file ready to share',
-          ),
-        ),
-        ListTile(
-          leading: Icon(Icons.folder_open_outlined, color: palette.primary),
-          title: const Text('Import backup file'),
-          enabled: !_busy,
-          onTap: () async {
-            final ok = await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text('Import backup?'),
-                content: const Text('This replaces all current data with the selected backup file.'),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-                  ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Import')),
-                ],
-              ),
-            );
-            if (ok == true) {
-              await _runBackup(
-                BackupService.instance.pickAndRestore,
-                'Backup imported successfully',
-              );
-              await NotificationService.instance.rescheduleFromDatabase();
-            }
-          },
-        ),
-        if (_busy)
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton.icon(
-            onPressed: _save,
-            icon: const Icon(Icons.save_outlined),
-            label: Text(s.saveSettings),
-          ),
+          onChanged: (v) => _setNotifications(v),
         ),
       ],
     );

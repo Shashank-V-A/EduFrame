@@ -75,9 +75,24 @@ class AppStrings {
 
   // AI
   String get aiTitle => _t('AI Assist', 'AI सहायता');
-  String get aiSubtitle => _t(
-        'Groq-powered help that supports your planning — you stay in control.',
-        'Groq-संचालित सहायता जो आपकी योजना में मदद करती है — नियंत्रण आपके पास।');
+  String get aiLessonContext => _t('Lesson context', 'पाठ संदर्भ');
+  String get aiTopicLabel => _t('Topic', 'विषय');
+  String get aiTopicHint => _t('e.g. Fractions', 'उदा. भिन्न');
+  String get aiClassLabel => _t('Class', 'कक्षा');
+  String get aiClassHint => _t('e.g. 2 · Sec B', 'उदा. 2 · Sec B');
+  String get aiSubjectLabel => _t('Subject', 'विषय');
+  String get aiSubjectHint => _t('e.g. Mathematics', 'उदा. गणित');
+  String get aiTopicRequired => _t('Enter a topic in lesson context first.', 'पहले पाठ संदर्भ में विषय लिखें।');
+  String get aiChatWelcome => _t(
+        'Ask anything about your lesson — or tap a quick suggestion above.',
+        'अपने पाठ के बारे में कुछ भी पूछें — या ऊपर सुझाव टैप करें।',
+      );
+  String get aiChatHint => _t('Ask a follow-up or request changes...', 'फॉलो-अप पूछें या बदलाव माँगें...');
+  String get aiClearChat => _t('Clear chat', 'चैट साफ़ करें');
+  String get aiQuickActivities => _t('Activities', 'गतिविधियाँ');
+  String get aiQuickHomework => _t('Homework', 'गृहकार्य');
+  String get aiQuickDifferentiation => _t('Differentiation', 'विभेदन');
+  String get aiQuickExplain => _t('Explain topic', 'विषय समझाएँ');
   String get useInPlan => _t('Use in plan', 'योजना में उपयोग करें');
   String get applyObjectives => _t('Apply objectives', 'उद्देश्य लागू करें');
   String get applyActivities => _t('Apply activities', 'गतिविधियाँ लागू करें');

@@ -27,15 +27,38 @@ class GroqService {
     return '';
   }
 
-  Future<String> _chat(String systemPrompt, String userPrompt) async {
-    final system = '${_languageInstruction()}$systemPrompt';
-    if (_proxyUrl.trim().isNotEmpty) {
-      return _chatViaProxy(system, userPrompt);
-    }
-    return _chatDirect(system, userPrompt);
+  String _formatInstruction() {
+    return 'Format rules: Use plain text only. Do not use markdown, asterisks, hashtags, or ** for emphasis. '
+        'Use ALL-CAPS section headings on their own line ending with a colon (e.g. OBJECTIVES:). '
+        'Use hyphen bullets (- item) for lists. Keep answers structured and easy to read on a phone. ';
   }
 
-  Future<String> _chatViaProxy(String systemPrompt, String userPrompt) async {
+  Future<String> _chat(String systemPrompt, String userPrompt) {
+    return _chatWithHistory(
+      systemPrompt: systemPrompt,
+      messages: [
+        {'role': 'user', 'content': userPrompt},
+      ],
+    );
+  }
+
+  Future<String> _chatWithHistory({
+    required String systemPrompt,
+    required List<Map<String, String>> messages,
+    int maxTokens = 900,
+  }) async {
+    final system = '${_languageInstruction()}${_formatInstruction()}$systemPrompt';
+    if (_proxyUrl.trim().isNotEmpty) {
+      return _chatViaProxy(system, messages, maxTokens: maxTokens);
+    }
+    return _chatDirect(system, messages, maxTokens: maxTokens);
+  }
+
+  Future<String> _chatViaProxy(
+    String systemPrompt,
+    List<Map<String, String>> messages, {
+    int maxTokens = 900,
+  }) async {
     final idToken = await AuthService.instance.getIdToken();
     if (idToken == null || idToken.isEmpty) {
       throw Exception('Sign in with Google to use AI Assist.');
@@ -49,9 +72,9 @@ class GroqService {
       },
       body: jsonEncode({
         'system': systemPrompt,
-        'user': userPrompt,
+        'messages': messages,
         'model': _model,
-        'max_tokens': 900,
+        'max_tokens': maxTokens,
         'temperature': 0.4,
       }),
     );
@@ -72,7 +95,11 @@ class GroqService {
     throw Exception('No response from AI proxy');
   }
 
-  Future<String> _chatDirect(String systemPrompt, String userPrompt) async {
+  Future<String> _chatDirect(
+    String systemPrompt,
+    List<Map<String, String>> messages, {
+    int maxTokens = 900,
+  }) async {
     if (_bundledApiKey.trim().isEmpty) {
       throw Exception(
         'AI is not configured. Set GROQ_PROXY_URL for production or rebuild with --dart-define=GROQ_API_KEY=your_key',
@@ -88,10 +115,10 @@ class GroqService {
       body: jsonEncode({
         'model': _model,
         'temperature': 0.4,
-        'max_tokens': 900,
+        'max_tokens': maxTokens,
         'messages': [
           {'role': 'system', 'content': systemPrompt},
-          {'role': 'user', 'content': userPrompt},
+          ...messages,
         ],
       }),
     );
@@ -105,6 +132,29 @@ class GroqService {
     if (choices.isEmpty) throw Exception('No response from AI');
     final message = choices.first['message'] as Map<String, dynamic>;
     return (message['content'] as String).trim();
+  }
+
+  Future<String> aiAssistChat({
+    required List<Map<String, String>> messages,
+    required String topic,
+    required String className,
+    required String subject,
+  }) {
+    final context = StringBuffer();
+    if (topic.isNotEmpty) context.writeln('Topic: $topic');
+    if (className.isNotEmpty) context.writeln('Class: $className');
+    if (subject.isNotEmpty) context.writeln('Subject: $subject');
+
+    return _chatWithHistory(
+      systemPrompt:
+          'You are EduFrame AI, a practical lesson-planning assistant for Indian school teachers. '
+          'Help with lesson flow, homework, differentiation, and explaining topics clearly. '
+          'Support follow-up questions and revisions to your previous answers. '
+          'Keep suggestions realistic for classrooms with limited resources.\n'
+          '${context.isNotEmpty ? 'Current lesson context:\n$context' : ''}',
+      messages: messages,
+      maxTokens: 1200,
+    );
   }
 
   Future<String> improveLessonPlan({

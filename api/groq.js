@@ -18,11 +18,25 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { system, user, model = 'llama-3.3-70b-versatile', max_tokens = 900, temperature = 0.4 } =
-    req.body || {};
+  const {
+    system,
+    user,
+    messages,
+    model = 'llama-3.3-70b-versatile',
+    max_tokens = 900,
+    temperature = 0.4,
+  } = req.body || {};
 
-  if (!system || !user) {
-    res.status(400).json({ error: 'system and user prompts are required' });
+  let chatMessages;
+  if (Array.isArray(messages) && messages.length > 0 && system) {
+    chatMessages = [{ role: 'system', content: system }, ...messages];
+  } else if (system && user) {
+    chatMessages = [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ];
+  } else {
+    res.status(400).json({ error: 'system prompt and user or messages are required' });
     return;
   }
 
@@ -37,10 +51,7 @@ module.exports = async function handler(req, res) {
         model,
         temperature,
         max_tokens,
-        messages: [
-          { role: 'system', content: system },
-          { role: 'user', content: user },
-        ],
+        messages: chatMessages,
       }),
     });
 

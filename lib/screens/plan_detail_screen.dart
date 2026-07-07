@@ -404,7 +404,7 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
                 ),
                 Expanded(
                   child: _actionTile(
-                    icon: Icons.auto_awesome_outlined,
+                    icon: Icons.smart_toy_outlined,
                     label: s.aiImprovePlan,
                     palette: palette,
                     onTap: _saving ? null : _aiImprove,

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../constants/theme.dart';
+import '../l10n/app_strings.dart';
 import '../models/models.dart';
+import '../utils/date_utils.dart';
 
 class PlanForm extends StatelessWidget {
   const PlanForm({
@@ -17,10 +19,14 @@ class PlanForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.strings;
+    final palette = AppPalette.of(context);
+    final tomorrow = addDays(toDateString(DateTime.now()), 1);
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const Text('Class *', style: TextStyle(fontWeight: FontWeight.w600)),
+        Text(s.classLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -30,9 +36,9 @@ class PlanForm extends StatelessWidget {
             return ChoiceChip(
               label: Text(cls.name),
               selected: selected,
-              selectedColor: AppColors.primary,
+              selectedColor: palette.primary,
               labelStyle: TextStyle(
-                color: selected ? Colors.white : AppColors.textSecondary,
+                color: selected ? Colors.white : palette.textSecondary,
                 fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
               ),
               onSelected: (_) => onChanged(data..classId = cls.id),
@@ -40,54 +46,67 @@ class PlanForm extends StatelessWidget {
           }).toList(),
         ),
         if (classes.isEmpty)
-          const Padding(
-            padding: EdgeInsets.only(top: 8),
-            child: Text(
-              'Add a class first from More > Classes.',
-              style: TextStyle(color: AppColors.textMuted, fontSize: 13),
-            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(s.addClassFirst, style: TextStyle(color: palette.textMuted, fontSize: 13)),
           ),
         const SizedBox(height: 16),
-        _field('Date *', data.planDate, (v) => onChanged(data..planDate = v)),
-        _field(
-          'Topic / lesson title *',
-          data.topic,
-          (v) => onChanged(data..topic = v),
-          hint: 'e.g. Quadratic equations — introduction',
+        Text(s.dateLabel, style: const TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _pickDate(context),
+          borderRadius: BorderRadius.circular(12),
+          child: InputDecorator(
+            decoration: const InputDecoration(
+              suffixIcon: Icon(Icons.calendar_today_outlined),
+            ),
+            child: Text(formatDisplayDate(data.planDate)),
+          ),
         ),
-        _area(
-          'Learning objectives',
-          data.objectives,
-          (v) => onChanged(data..objectives = v),
-          hint: 'What should students learn by the end of this period?',
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: [
+            ActionChip(
+              label: Text(s.tomorrow),
+              onPressed: () => onChanged(data..planDate = tomorrow),
+            ),
+            ActionChip(
+              label: Text(s.nextMonday),
+              onPressed: () => onChanged(data..planDate = nextMondayDate()),
+            ),
+          ],
         ),
-        _area(
-          'Materials / resources',
-          data.materials,
-          (v) => onChanged(data..materials = v),
-          hint: 'Textbook pages, charts, worksheets...',
-        ),
-        _area(
-          'Activities & teaching procedure',
-          data.activities,
-          (v) => onChanged(data..activities = v),
-          hint: 'Warm-up, explanation, board work, group activity...',
-        ),
-        _area(
-          'Homework / assignment',
-          data.homework,
-          (v) => onChanged(data..homework = v),
-          hint: 'Exercise numbers, reading, practice problems...',
-        ),
-        _area(
-          'Teacher notes',
-          data.notes,
-          (v) => onChanged(data..notes = v),
-          hint: 'Reminders, differentiation ideas, improvements for next time...',
-        ),
+        const SizedBox(height: 16),
+        _field(s.topicLabel, data.topic, (v) => onChanged(data..topic = v),
+            hint: 'e.g. Quadratic equations — introduction'),
+        _area(s.objectivesLabel, data.objectives, (v) => onChanged(data..objectives = v),
+            hint: 'What should students learn by the end of this period?'),
+        _area(s.materialsLabel, data.materials, (v) => onChanged(data..materials = v),
+            hint: 'Textbook pages, charts, worksheets...'),
+        _area(s.activitiesLabel, data.activities, (v) => onChanged(data..activities = v),
+            hint: 'Warm-up, explanation, board work, group activity...'),
+        _area(s.homeworkLabel, data.homework, (v) => onChanged(data..homework = v),
+            hint: 'Exercise numbers, reading, practice problems...'),
+        _area(s.notesLabel, data.notes, (v) => onChanged(data..notes = v),
+            hint: 'Reminders, differentiation ideas, improvements for next time...'),
         const SizedBox(height: 80),
       ],
     );
+  }
+
+  Future<void> _pickDate(BuildContext context) async {
+    final initial = parsePlanDate(data.planDate);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2035, 12, 31),
+      helpText: context.strings.pickDate,
+    );
+    if (picked != null) {
+      onChanged(data..planDate = toDateString(picked));
+    }
   }
 
   Widget _field(String label, String value, ValueChanged<String> onChanged, {String? hint}) {

@@ -335,4 +335,83 @@ class DatabaseService {
     final db = await database;
     await db.delete('timetable_slots', where: 'id = ?', whereArgs: [id]);
   }
+
+  Future<void> importAllData({
+    required List<Map<String, String>> classes,
+    required List<Map<String, String>> plans,
+    required List<Map<String, dynamic>> slots,
+    bool replace = true,
+  }) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      if (replace) {
+        await txn.delete('timetable_slots');
+        await txn.delete('lesson_plans');
+        await txn.delete('classes');
+      }
+
+      final classNameToId = <String, int>{};
+      final existingClasses = await txn.query('classes');
+      for (final row in existingClasses) {
+        classNameToId[row['name'] as String] = row['id'] as int;
+      }
+
+      for (final cls in classes) {
+        final name = cls['name']!.trim();
+        if (name.isEmpty) continue;
+        if (classNameToId.containsKey(name)) continue;
+        final id = await txn.insert('classes', {
+          'name': name,
+          'subject': cls['subject']?.trim() ?? '',
+          'section': cls['section']?.trim() ?? '',
+          'created_at': cls['created_at'] ?? DateTime.now().toIso8601String(),
+        });
+        classNameToId[name] = id;
+      }
+
+      for (final plan in plans) {
+        final className = plan['class_name']?.trim() ?? '';
+        var classId = classNameToId[className];
+        if (classId == null && className.isNotEmpty) {
+          classId = await txn.insert('classes', {
+            'name': className,
+            'subject': plan['subject']?.trim() ?? '',
+            'section': plan['section']?.trim() ?? '',
+            'created_at': DateTime.now().toIso8601String(),
+          });
+          classNameToId[className] = classId;
+        }
+        if (classId == null) continue;
+
+        final now = DateTime.now().toIso8601String();
+        await txn.insert('lesson_plans', {
+          'class_id': classId,
+          'plan_date': normalizePlanDate(plan['plan_date'] ?? now),
+          'topic': plan['topic']?.trim() ?? 'Untitled',
+          'objectives': plan['objectives']?.trim() ?? '',
+          'activities': plan['activities']?.trim() ?? '',
+          'homework': plan['homework']?.trim() ?? '',
+          'materials': plan['materials']?.trim() ?? '',
+          'notes': plan['notes']?.trim() ?? '',
+          'created_at': plan['created_at'] ?? now,
+          'updated_at': plan['updated_at'] ?? now,
+        });
+      }
+
+      for (final slot in slots) {
+        final className = slot['class_name'] as String?;
+        int? classId;
+        if (className != null && className.trim().isNotEmpty) {
+          classId = classNameToId[className.trim()];
+        }
+        await txn.insert('timetable_slots', {
+          'class_id': classId,
+          'day_of_week': slot['day_of_week'] as int? ?? 1,
+          'start_time': slot['start_time'] as String? ?? '09:00',
+          'end_time': slot['end_time'] as String? ?? '09:45',
+          'room': (slot['room'] as String? ?? '').trim(),
+        });
+      }
+    });
+  }
 }

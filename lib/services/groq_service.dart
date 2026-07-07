@@ -2,23 +2,74 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import 'auth_service.dart';
+
 class GroqService {
   GroqService._();
   static final GroqService instance = GroqService._();
 
-  static const _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
+  static const _groqUrl = 'https://api.groq.com/openai/v1/chat/completions';
   static const _model = 'llama-3.3-70b-versatile';
   static const _bundledApiKey = String.fromEnvironment('GROQ_API_KEY');
+  static const _productionProxy = 'https://server-tau-kohl.vercel.app/api/groq';
+  static const _proxyUrl = String.fromEnvironment(
+    'GROQ_PROXY_URL',
+    defaultValue: _productionProxy,
+  );
 
   Future<String> _chat(String systemPrompt, String userPrompt) async {
+    if (_proxyUrl.trim().isNotEmpty) {
+      return _chatViaProxy(systemPrompt, userPrompt);
+    }
+    return _chatDirect(systemPrompt, userPrompt);
+  }
+
+  Future<String> _chatViaProxy(String systemPrompt, String userPrompt) async {
+    final idToken = await AuthService.instance.getIdToken();
+    if (idToken == null || idToken.isEmpty) {
+      throw Exception('Sign in with Google to use AI Assist.');
+    }
+
+    final response = await http.post(
+      Uri.parse(_proxyUrl),
+      headers: {
+        'Authorization': 'Bearer $idToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'system': systemPrompt,
+        'user': userPrompt,
+        'model': _model,
+        'max_tokens': 900,
+        'temperature': 0.4,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('AI proxy error (${response.statusCode}): ${response.body}');
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    if (data.containsKey('content')) {
+      return (data['content'] as String).trim();
+    }
+    final choices = data['choices'] as List<dynamic>?;
+    if (choices != null && choices.isNotEmpty) {
+      final message = choices.first['message'] as Map<String, dynamic>;
+      return (message['content'] as String).trim();
+    }
+    throw Exception('No response from AI proxy');
+  }
+
+  Future<String> _chatDirect(String systemPrompt, String userPrompt) async {
     if (_bundledApiKey.trim().isEmpty) {
       throw Exception(
-        'Groq is not configured. Rebuild the app with --dart-define=GROQ_API_KEY=your_key',
+        'AI is not configured. Set GROQ_PROXY_URL for production or rebuild with --dart-define=GROQ_API_KEY=your_key',
       );
     }
 
     final response = await http.post(
-      Uri.parse(_baseUrl),
+      Uri.parse(_groqUrl),
       headers: {
         'Authorization': 'Bearer $_bundledApiKey',
         'Content-Type': 'application/json',

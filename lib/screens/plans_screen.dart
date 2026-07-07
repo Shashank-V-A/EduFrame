@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../constants/theme.dart';
+import '../l10n/app_strings.dart';
 import '../models/models.dart';
 import '../services/database_service.dart';
 import '../utils/date_utils.dart';
 import '../widgets/common.dart';
 import '../widgets/plan_card.dart';
 import 'plan_detail_screen.dart';
+import 'plan_new_screen.dart';
 
 class PlansScreen extends StatefulWidget {
   const PlansScreen({super.key});
@@ -30,8 +31,18 @@ class _PlansScreenState extends State<PlansScreen> {
     setState(() => _plans = plans);
   }
 
+  Future<void> _planTomorrow() async {
+    final tomorrow = addDays(toDateString(DateTime.now()), 1);
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => PlanNewScreen(initialDate: tomorrow)),
+    );
+    await _load();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final s = context.strings;
     final grouped = <String, List<LessonPlan>>{};
     for (final plan in _plans) {
       grouped.putIfAbsent(plan.planDate, () => []).add(plan);
@@ -41,14 +52,16 @@ class _PlansScreenState extends State<PlansScreen> {
       onRefresh: _load,
       child: ListView(
         children: [
-          const ScreenHeader(
-            title: 'All plans',
+          ScreenHeader(
+            title: s.allPlans,
             subtitle: "Browse every lesson you've written — reuse and refine.",
           ),
           if (_plans.isEmpty)
-            const EmptyState(
-              message: 'Your notebook is empty',
-              hint: "Start with tomorrow's classes from the Today tab.",
+            EmptyState(
+              message: s.emptyNotebook,
+              hint: s.startFromToday,
+              actionLabel: s.planForTomorrow,
+              onAction: _planTomorrow,
             )
           else
             ...grouped.entries.map((entry) {
@@ -62,7 +75,6 @@ class _PlansScreenState extends State<PlansScreen> {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textSecondary,
                         letterSpacing: 0.5,
                       ),
                     ),

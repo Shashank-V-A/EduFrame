@@ -64,4 +64,19 @@ class AuthService {
     await _signIn.signOut();
     currentUser.value = null;
   }
+
+  Future<String?> getIdToken() async {
+    final user = currentUser.value;
+    if (user == null) return null;
+    return user.authentication.idToken;
+  }
+
+  Future<String?> getAccessToken({required List<String> scopes}) async {
+    final user = currentUser.value;
+    if (user == null) return null;
+    if (scopes.isEmpty) return null;
+
+    final auth = await user.authorizationClient.authorizeScopes(scopes);
+    return auth.accessToken;
+  }
 }

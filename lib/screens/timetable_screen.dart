@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/models.dart';
+import '../models/plan_draft.dart';
 import '../services/database_service.dart';
 import '../services/notification_service.dart';
 import '../utils/date_utils.dart';
 import '../widgets/common.dart';
+import 'plan_new_screen.dart';
 
 class TimetableScreen extends StatefulWidget {
   const TimetableScreen({super.key});
@@ -39,6 +42,24 @@ class _TimetableScreenState extends State<TimetableScreen> {
   List<TimetableSlot> get _daySlots =>
       _slots.where((s) => s.dayOfWeek == _selectedDay).toList()
         ..sort((a, b) => a.startTime.compareTo(b.startTime));
+
+  Future<void> _planClass(TimetableSlot slot) async {
+    if (slot.classId == null) return;
+
+    final planDate = dateForWeekday(slot.dayOfWeek);
+    final draft = PlanDraft(
+      classId: slot.classId,
+      planDate: planDate,
+      topic: slot.subject.isNotEmpty ? slot.subject : '',
+      notes: slot.room.isNotEmpty ? 'Room ${slot.room}' : '',
+    );
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => PlanNewScreen(draft: draft)),
+    );
+    await _load();
+  }
 
   Future<void> _addOrEditSlot({TimetableSlot? existing}) async {
     int? classId = existing?.classId;
@@ -146,11 +167,13 @@ class _TimetableScreenState extends State<TimetableScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.strings;
+
     return Column(
       children: [
-        const ScreenHeader(
-          title: 'Timetable',
-          subtitle: 'Weekly schedule with 5-minute class reminders.',
+        ScreenHeader(
+          title: s.timetableTitle,
+          subtitle: s.timetableSubtitle,
         ),
         SizedBox(
           height: 44,
@@ -176,10 +199,12 @@ class _TimetableScreenState extends State<TimetableScreen> {
             onRefresh: _load,
             child: _daySlots.isEmpty
                 ? ListView(
-                    children: const [
+                    children: [
                       EmptyState(
-                        message: 'No periods for this day',
-                        hint: 'Add your school periods to get reminders before each class.',
+                        message: s.noPeriods,
+                        hint: s.addPeriodsHint,
+                        actionLabel: s.addPeriodAction,
+                        onAction: () => _addOrEditSlot(),
                       ),
                     ],
                   )
@@ -188,6 +213,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
                     itemCount: _daySlots.length,
                     itemBuilder: (context, index) {
                       final slot = _daySlots[index];
+                      final hasClass = slot.classId != null;
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
                         child: ListTile(
@@ -199,17 +225,22 @@ class _TimetableScreenState extends State<TimetableScreen> {
                           ),
                           trailing: PopupMenuButton<String>(
                             onSelected: (value) {
-                              if (value == 'edit') {
+                              if (value == 'plan' && hasClass) {
+                                _planClass(slot);
+                              } else if (value == 'edit') {
                                 _addOrEditSlot(existing: slot);
                               } else if (value == 'delete') {
                                 _deleteSlot(slot);
                               }
                             },
-                            itemBuilder: (_) => const [
-                              PopupMenuItem(value: 'edit', child: Text('Edit')),
-                              PopupMenuItem(value: 'delete', child: Text('Delete')),
+                            itemBuilder: (_) => [
+                              if (hasClass)
+                                PopupMenuItem(value: 'plan', child: Text(s.planThisClass)),
+                              const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                              const PopupMenuItem(value: 'delete', child: Text('Delete')),
                             ],
                           ),
+                          onTap: hasClass ? () => _planClass(slot) : null,
                         ),
                       );
                     },
@@ -223,7 +254,7 @@ class _TimetableScreenState extends State<TimetableScreen> {
             child: ElevatedButton.icon(
               onPressed: () => _addOrEditSlot(),
               icon: const Icon(Icons.add),
-              label: Text('Add period (${dayNames[_selectedDay]})'),
+              label: Text('${s.addPeriod} (${dayNames[_selectedDay]})'),
             ),
           ),
         ),

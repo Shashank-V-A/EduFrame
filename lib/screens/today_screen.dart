@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/models.dart';
 import '../services/database_service.dart';
 import '../utils/date_utils.dart';
@@ -61,6 +62,7 @@ class _TodayScreenState extends State<TodayScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = context.strings;
     final today = toDateString(DateTime.now());
     final tomorrow = addDays(today, 1);
 
@@ -69,8 +71,8 @@ class _TodayScreenState extends State<TodayScreen> {
       child: ListView(
         children: [
           ScreenHeader(
-            title: 'EduFrame',
-            subtitle: '${greeting()} Plan tonight, teach tomorrow with confidence.',
+            title: s.appTitle,
+            subtitle: s.greetingSubtitle(greeting()),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -81,7 +83,7 @@ class _TodayScreenState extends State<TodayScreen> {
                   child: ElevatedButton.icon(
                     onPressed: () => _openNew(tomorrow),
                     icon: const Icon(Icons.add_circle_outline),
-                    label: const Text('Plan for tomorrow'),
+                    label: Text(s.planForTomorrow),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -90,7 +92,7 @@ class _TodayScreenState extends State<TodayScreen> {
                   child: OutlinedButton.icon(
                     onPressed: () => _openNew(today),
                     icon: const Icon(Icons.edit_outlined),
-                    label: const Text('Plan for today'),
+                    label: Text(s.planForToday),
                   ),
                 ),
               ],
@@ -99,21 +101,32 @@ class _TodayScreenState extends State<TodayScreen> {
           _section(
             'Tomorrow · ${formatDisplayDate(tomorrow)}',
             _tomorrowPlans,
-            'No plans for tomorrow yet',
-            'Most teachers plan the night before — tap the button above.',
+            s.noPlansTomorrow,
+            s.noPlansTomorrowHint,
+            s.planNow,
+            () => _openNew(tomorrow),
           ),
           _section(
             'Today · ${formatDisplayDate(today)}',
             _todayPlans,
-            'Nothing scheduled for today',
-            'Add a plan if you still have classes today.',
+            s.nothingToday,
+            s.addPlanToday,
+            s.planNow,
+            () => _openNew(today),
           ),
         ],
       ),
     );
   }
 
-  Widget _section(String title, List<LessonPlan> plans, String empty, String hint) {
+  Widget _section(
+    String title,
+    List<LessonPlan> plans,
+    String empty,
+    String hint,
+    String actionLabel,
+    VoidCallback onAction,
+  ) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
       child: Column(
@@ -122,7 +135,12 @@ class _TodayScreenState extends State<TodayScreen> {
           Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           if (plans.isEmpty)
-            EmptyState(message: empty, hint: hint)
+            EmptyState(
+              message: empty,
+              hint: hint,
+              actionLabel: actionLabel,
+              onAction: onAction,
+            )
           else
             ...plans.map(
               (plan) => PlanCard(plan: plan, onTap: () => _openPlan(plan.id)),

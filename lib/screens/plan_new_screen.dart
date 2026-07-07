@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 
 import '../models/models.dart';
+import '../models/plan_draft.dart';
 import '../services/database_service.dart';
 import '../widgets/plan_form.dart';
 
 class PlanNewScreen extends StatefulWidget {
-  const PlanNewScreen({super.key, this.initialDate});
+  const PlanNewScreen({
+    super.key,
+    this.initialDate,
+    this.draft,
+  });
 
   final String? initialDate;
+  final PlanDraft? draft;
 
   @override
   State<PlanNewScreen> createState() => _PlanNewScreenState();
@@ -21,7 +27,18 @@ class _PlanNewScreenState extends State<PlanNewScreen> {
   @override
   void initState() {
     super.initState();
-    _form = PlanFormData.empty(date: widget.initialDate);
+    final draft = widget.draft;
+    _form = PlanFormData.empty(date: widget.initialDate ?? draft?.planDate);
+    if (draft != null) {
+      _form.classId = draft.classId;
+      if (draft.planDate != null) _form.planDate = draft.planDate!;
+      _form.topic = draft.topic;
+      _form.objectives = draft.objectives;
+      _form.activities = draft.activities;
+      _form.homework = draft.homework;
+      _form.materials = draft.materials;
+      _form.notes = draft.notes;
+    }
     _load();
   }
 
@@ -30,7 +47,9 @@ class _PlanNewScreenState extends State<PlanNewScreen> {
     if (!mounted) return;
     setState(() {
       _classes = classes;
-      if (classes.length == 1) _form.classId = classes.first.id;
+      if (_form.classId == null && classes.length == 1) {
+        _form.classId = classes.first.id;
+      }
     });
   }
 

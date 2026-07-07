@@ -36,6 +36,23 @@ String normalizePlanDate(String input) {
   }
 }
 
+/// Next calendar date for a weekday (1=Mon … 7=Sun). Uses today if it matches.
+String dateForWeekday(int dayOfWeek) {
+  final now = DateTime.now();
+  var diff = dayOfWeek - now.weekday;
+  if (diff < 0) diff += 7;
+  return toDateString(now.add(Duration(days: diff)));
+}
+
+String nextMondayDate() {
+  final now = DateTime.now();
+  var diff = DateTime.monday - now.weekday;
+  if (diff <= 0) diff += 7;
+  return toDateString(now.add(Duration(days: diff)));
+}
+
+DateTime parsePlanDate(String dateStr) => DateTime.parse(normalizePlanDate(dateStr));
+
 String formatTime12h(String hhmm) {
   final parts = hhmm.split(':');
   if (parts.length < 2) return hhmm;

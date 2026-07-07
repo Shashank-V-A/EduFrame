@@ -3,13 +3,23 @@ import 'package:flutter/material.dart';
 import '../constants/theme.dart';
 
 class EmptyState extends StatelessWidget {
-  const EmptyState({super.key, required this.message, this.hint});
+  const EmptyState({
+    super.key,
+    required this.message,
+    this.hint,
+    this.actionLabel,
+    this.onAction,
+  });
 
   final String message;
   final String? hint;
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -19,10 +29,10 @@ class EmptyState extends StatelessWidget {
           Text(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w600,
-              color: AppColors.text,
+              color: palette.text,
             ),
           ),
           if (hint != null) ...[
@@ -30,8 +40,12 @@ class EmptyState extends StatelessWidget {
             Text(
               hint!,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: AppColors.textMuted, height: 1.4),
+              style: TextStyle(fontSize: 14, color: palette.textMuted, height: 1.4),
             ),
+          ],
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: 20),
+            ElevatedButton(onPressed: onAction, child: Text(actionLabel!)),
           ],
         ],
       ),
@@ -47,6 +61,8 @@ class ScreenHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Column(
@@ -54,10 +70,10 @@ class ScreenHeader extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w800,
-              color: AppColors.primary,
+              color: palette.primary,
               letterSpacing: -0.5,
             ),
           ),
@@ -65,7 +81,7 @@ class ScreenHeader extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               subtitle!,
-              style: const TextStyle(fontSize: 15, color: AppColors.textSecondary, height: 1.4),
+              style: TextStyle(fontSize: 15, color: palette.textSecondary, height: 1.4),
             ),
           ],
         ],

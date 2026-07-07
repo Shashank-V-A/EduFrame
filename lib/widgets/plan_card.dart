@@ -12,13 +12,15 @@ class PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = AppPalette.of(context);
+
     return Card(
-      color: AppColors.surface,
+      color: palette.surface,
       elevation: 0,
       margin: const EdgeInsets.only(bottom: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.border),
+        side: BorderSide(color: palette.border),
       ),
       child: InkWell(
         onTap: onTap,
@@ -34,17 +36,17 @@ class PlanCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       plan.topic.isEmpty ? 'Untitled lesson' : plan.topic,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.text,
+                        color: palette.text,
                       ),
                     ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.accentSoft,
+                      color: palette.accentSoft,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
@@ -61,7 +63,7 @@ class PlanCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 '${formatDisplayDate(plan.planDate)} · ${plan.subject}',
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 13, color: palette.textSecondary),
               ),
               if (plan.objectives.isNotEmpty) ...[
                 const SizedBox(height: 6),
@@ -69,7 +71,7 @@ class PlanCard extends StatelessWidget {
                   plan.objectives,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 14, color: AppColors.textMuted),
+                  style: TextStyle(fontSize: 14, color: palette.textMuted),
                 ),
               ],
             ],

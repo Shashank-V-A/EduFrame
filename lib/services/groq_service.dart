@@ -2,25 +2,25 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-import 'settings_service.dart';
-
 class GroqService {
   GroqService._();
   static final GroqService instance = GroqService._();
 
   static const _baseUrl = 'https://api.groq.com/openai/v1/chat/completions';
   static const _model = 'llama-3.3-70b-versatile';
+  static const _bundledApiKey = String.fromEnvironment('GROQ_API_KEY');
 
   Future<String> _chat(String systemPrompt, String userPrompt) async {
-    final apiKey = await SettingsService.instance.getGroqApiKey();
-    if (apiKey == null) {
-      throw Exception('Add your Groq API key in More > Settings');
+    if (_bundledApiKey.trim().isEmpty) {
+      throw Exception(
+        'Groq is not configured. Rebuild the app with --dart-define=GROQ_API_KEY=your_key',
+      );
     }
 
     final response = await http.post(
       Uri.parse(_baseUrl),
       headers: {
-        'Authorization': 'Bearer $apiKey',
+        'Authorization': 'Bearer $_bundledApiKey',
         'Content-Type': 'application/json',
       },
       body: jsonEncode({

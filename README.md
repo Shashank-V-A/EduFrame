@@ -6,13 +6,13 @@ Lesson plan notebook for teachers — built for planning tonight, teaching tomor
 
 ```powershell
 cd d:\Mobile-Dev
-& "C:\Users\SHASHANK V A\Downloads\flutter_windows_3.44.4-stable\flutter\bin\flutter.bat" run
+& "C:\Users\SHASHANK V A\Downloads\flutter_windows_3.44.4-stable\flutter\bin\flutter.bat" run --dart-define=GROQ_API_KEY=your_groq_key
 ```
 
 Or after adding Flutter to PATH:
 
 ```bash
-flutter run
+flutter run --dart-define=GROQ_API_KEY=your_groq_key
 ```
 
 Connect your Android phone with USB debugging on, or use an emulator from Android Studio.
@@ -76,11 +76,37 @@ Usually the **debugger disconnects**, not a full app crash — especially on **P
 4. If it happens again: the app may still be open on the emulator — check the emulator screen.
 5. Cold boot the emulator: **Device Manager → ⋮ → Cold Boot Now**.
 
+### Google OAuth values
+
+Android package name:
+
+```text
+com.eduframe.app
+```
+
+Debug SHA-1:
+
+```text
+F8:BE:BB:2B:28:EC:FB:DB:DF:43:8B:B1:A4:E7:8F:77:D0:E8:4B:03
+```
+
+Configured Android client ID:
+
+```text
+669192163812-1955h44t69ueu40bqqt25v4o3jvp8k6a.apps.googleusercontent.com
+```
+
+Configured Web client ID:
+
+```text
+669192163812-1c4eglr4tpdpj0ovh2ff3i0fppucmjui.apps.googleusercontent.com
+```
+
 ### Run from terminal (alternative to Android Studio)
 
 ```powershell
 cd d:\Mobile-Dev
-& "C:\Users\SHASHANK V A\Downloads\flutter_windows_3.44.4-stable\flutter\bin\flutter.bat" run -d localhost:56837
+& "C:\Users\SHASHANK V A\Downloads\flutter_windows_3.44.4-stable\flutter\bin\flutter.bat" run -d localhost:56837 --dart-define=GROQ_API_KEY=your_groq_key
 ```
 
 Replace the device id with yours from `flutter devices`.

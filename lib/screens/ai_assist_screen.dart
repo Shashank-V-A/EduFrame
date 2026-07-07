@@ -150,7 +150,7 @@ class _AiAssistScreenState extends State<AiAssistScreen> {
         const Padding(
           padding: EdgeInsets.all(16),
           child: Text(
-            'AI assists your planning. Always review before teaching. Add your Groq API key in More > Settings.',
+            'AI assists your planning. Always review before teaching. This build must include a Groq key via dart-define.',
             style: TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.4),
           ),
         ),

@@ -1,8 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import 'constants/theme.dart';
+import 'screens/google_sign_in_screen.dart';
 import 'screens/home_shell.dart';
+import 'services/auth_service.dart';
 import 'services/database_service.dart';
 import 'services/notification_service.dart';
 
@@ -20,6 +23,7 @@ Future<void> main() async {
   };
 
   await DatabaseService.instance.database;
+  await AuthService.instance.initialize();
   await NotificationService.instance.init();
   await NotificationService.instance.rescheduleFromDatabase();
 
@@ -35,7 +39,24 @@ class EduFrameApp extends StatelessWidget {
       title: 'EduFrame',
       debugShowCheckedModeBanner: false,
       theme: buildAppTheme(),
-      home: const HomeShell(),
+      home: const AuthGate(),
+    );
+  }
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<GoogleSignInAccount?>(
+      valueListenable: AuthService.instance.currentUser,
+      builder: (context, user, _) {
+        if (user == null) {
+          return const GoogleSignInScreen();
+        }
+        return const HomeShell();
+      },
     );
   }
 }

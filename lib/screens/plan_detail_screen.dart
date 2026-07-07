@@ -223,7 +223,7 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: _saving ? null : _aiImprove,
-            icon: const Icon(Icons.auto_awesome_outlined),
+            icon: const Icon(Icons.smart_toy_outlined),
             label: const Text('AI: Improve this plan'),
           ),
           const SizedBox(height: 8),

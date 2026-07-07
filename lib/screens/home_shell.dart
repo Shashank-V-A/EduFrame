@@ -54,8 +54,8 @@ class _HomeShellState extends State<HomeShell> {
             label: 'Schedule',
           ),
           NavigationDestination(
-            icon: Icon(Icons.auto_awesome_outlined),
-            selectedIcon: Icon(Icons.auto_awesome),
+            icon: Icon(Icons.smart_toy_outlined),
+            selectedIcon: Icon(Icons.smart_toy),
             label: 'AI',
           ),
           NavigationDestination(

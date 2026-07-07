@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../constants/theme.dart';
+import '../services/auth_service.dart';
 import '../services/notification_service.dart';
 import '../services/settings_service.dart';
 import '../widgets/common.dart';
@@ -13,9 +15,8 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final _apiKeyController = TextEditingController();
   bool _notifications = true;
-  bool _obscure = true;
+  GoogleSignInAccount? _user;
 
   @override
   void initState() {
@@ -24,29 +25,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _load() async {
-    final key = await SettingsService.instance.getGroqApiKey();
     final notifications = await SettingsService.instance.notificationsEnabled();
     if (!mounted) return;
     setState(() {
-      _apiKeyController.text = key ?? '';
       _notifications = notifications;
+      _user = AuthService.instance.currentUser.value;
     });
   }
 
-  @override
-  void dispose() {
-    _apiKeyController.dispose();
-    super.dispose();
-  }
-
   Future<void> _save() async {
-    await SettingsService.instance.setGroqApiKey(_apiKeyController.text);
     await SettingsService.instance.setNotificationsEnabled(_notifications);
     await NotificationService.instance.rescheduleFromDatabase();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Settings saved')),
     );
+  }
+
+  Future<void> _logout() async {
+    await AuthService.instance.signOut();
   }
 
   @override
@@ -56,7 +53,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       children: [
         const ScreenHeader(
           title: 'Settings',
-          subtitle: 'Connect Groq AI and manage class reminders.',
+          subtitle: 'Manage your Google account and class reminders.',
         ),
         Padding(
           padding: const EdgeInsets.all(16),
@@ -66,23 +63,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Groq API key', style: TextStyle(fontWeight: FontWeight.w700)),
+                  const Text(
+                    'Signed in account',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                   const SizedBox(height: 8),
-                  TextField(
-                    controller: _apiKeyController,
-                    obscureText: _obscure,
-                    decoration: InputDecoration(
-                      hintText: 'gsk_...',
-                      suffixIcon: IconButton(
-                        icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
-                        onPressed: () => setState(() => _obscure = !_obscure),
-                      ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      backgroundColor: AppColors.accentSoft,
+                      backgroundImage:
+                          _user?.photoUrl != null ? NetworkImage(_user!.photoUrl!) : null,
+                      child: _user?.photoUrl == null
+                          ? const Icon(Icons.person, color: AppColors.primary)
+                          : null,
                     ),
+                    title: Text(_user?.displayName ?? 'Google account'),
+                    subtitle: Text(_user?.email ?? 'Not signed in'),
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Get a free key at console.groq.com. Stored only on this phone.',
+                    'AI uses the app build configuration. Teachers do not need to enter an API key.',
                     style: TextStyle(fontSize: 13, color: AppColors.textMuted),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: _logout,
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Log out'),
                   ),
                 ],
               ),

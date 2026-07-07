@@ -4,7 +4,6 @@ import '../constants/theme.dart';
 import '../l10n/app_strings.dart';
 import 'classes_screen.dart';
 import 'export_screen.dart';
-import 'search_screen.dart';
 import 'settings_screen.dart';
 import '../widgets/common.dart';
 
@@ -45,14 +44,6 @@ class MoreScreen extends StatelessWidget {
           title: s.moreExport,
           subtitle: s.moreExportHint,
           screen: const ExportScreen(),
-        ),
-        _tile(
-          context,
-          palette: palette,
-          icon: Icons.search,
-          title: s.moreSearch,
-          subtitle: s.moreSearchHint,
-          screen: const SearchScreen(),
         ),
       ],
     );

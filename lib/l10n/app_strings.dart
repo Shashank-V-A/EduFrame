@@ -20,15 +20,12 @@ class AppStrings {
   // More
   String get moreTitle => _t('More', 'अधिक');
   String get moreSubtitle =>
-      _t('Settings, classes, export, and search.', 'सेटिंग्स, कक्षाएँ, निर्यात और खोज।');
+      _t('Settings, classes, and export.', 'सेटिंग्स, कक्षाएँ और निर्यात।');
   String get moreClasses => _t('Classes', 'कक्षाएँ');
   String get moreClassesHint => _t('Manage the classes you teach', 'जिन कक्षाओं को आप पढ़ाते हैं उन्हें प्रबंधित करें');
   String get moreExport => _t('Export PDF', 'PDF निर्यात');
   String get moreExportHint =>
       _t('Share lesson plans with your HOD', 'अपने HOD के साथ पाठ योजना साझा करें');
-  String get moreSearch => _t('Search plans', 'योजनाएँ खोजें');
-  String get moreSearchHint =>
-      _t('Find old lessons by keyword', 'कीवर्ड से पुराने पाठ खोजें');
   String get moreSettings => _t('Settings', 'सेटिंग्स');
   String get moreSettingsHint =>
       _t('Google account and notifications', 'Google खाता और अनुस्मारक');
@@ -128,6 +125,20 @@ class AppStrings {
 
   // Plans
   String get allPlans => _t('All plans', 'सभी योजनाएँ');
+  String get allPlansSubtitle => _t(
+        "Browse every lesson you've written — reuse and refine.",
+        'आपके द्वारा लिखे हर पाठ को देखें — दोबारा उपयोग करें और सुधारें।',
+      );
+  String get plansSearch => _t('Search plans', 'योजनाएँ खोजें');
+  String get plansSearchHint =>
+      _t('Topic, activity, homework...', 'विषय, गतिविधि, गृहकार्य...');
+  String get plansSearchPrompt => _t(
+        'Type a keyword to find matching lesson plans.',
+        'मिलती योजनाएँ खोजने के लिए कीवर्ड लिखें।',
+      );
+  String get plansSearchEmpty => _t('No matching plans', 'कोई मिलती योजना नहीं');
+  String get plansSearchEmptyHint =>
+      _t('Try a shorter keyword or different topic.', 'छोटा कीवर्ड या दूसा विषय आज़माएँ।');
   String get emptyNotebook => _t('Your notebook is empty', 'आपकी नोटबुक खाली है');
   String get startFromToday =>
       _t('Start with tomorrow\'s classes from the Today tab.', 'आज टैब से कल की कक्षाओं से शुरू करें।');

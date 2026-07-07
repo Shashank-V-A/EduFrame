@@ -25,6 +25,65 @@ class AiParsedSections {
 
 class AiResultParser {
   static AiParsedSections parse(String text) {
+    return _parseSingle(text);
+  }
+
+  /// Merges structured sections from multiple assistant replies.
+  /// Later messages override earlier ones only for sections they include.
+  static AiParsedSections parseConversation(Iterable<String> assistantTexts) {
+    var objectives = '';
+    var materials = '';
+    var activities = '';
+    var homework = '';
+    var notes = '';
+
+    final texts = assistantTexts.where((t) => t.trim().isNotEmpty).toList();
+    for (final text in texts) {
+      final parsed = _parseSingle(text);
+      if (parsed.objectives.isNotEmpty) objectives = parsed.objectives;
+      if (parsed.materials.isNotEmpty) materials = parsed.materials;
+      if (parsed.activities.isNotEmpty) activities = parsed.activities;
+      if (parsed.homework.isNotEmpty) homework = parsed.homework;
+      if (parsed.notes.isNotEmpty) notes = parsed.notes;
+    }
+
+    if (activities.isEmpty) {
+      for (final text in texts.reversed) {
+        final flow = extractLessonFlow(_normalize(text));
+        if (flow.isNotEmpty) {
+          activities = flow;
+          break;
+        }
+      }
+    }
+
+    if (objectives.isEmpty &&
+        materials.isEmpty &&
+        activities.isEmpty &&
+        homework.isEmpty &&
+        texts.isNotEmpty) {
+      final longest = texts.reduce((a, b) => a.length >= b.length ? a : b);
+      final parsed = _parseSingle(longest);
+      if (objectives.isEmpty && parsed.objectives.isNotEmpty) objectives = parsed.objectives;
+      if (materials.isEmpty && parsed.materials.isNotEmpty) materials = parsed.materials;
+      if (activities.isEmpty && parsed.activities.isNotEmpty) activities = parsed.activities;
+      if (homework.isEmpty && parsed.homework.isNotEmpty) homework = parsed.homework;
+      if (notes.isEmpty && parsed.notes.isNotEmpty) notes = parsed.notes;
+      if (activities.isEmpty) activities = longest.trim();
+    }
+
+    final fullText = texts.isEmpty ? '' : texts.last.trim();
+    return AiParsedSections(
+      objectives: objectives,
+      materials: materials,
+      activities: activities,
+      homework: homework,
+      notes: notes,
+      fullText: fullText,
+    );
+  }
+
+  static AiParsedSections _parseSingle(String text) {
     final normalized = _normalize(text);
 
     final objectives = _extractSection(normalized, [

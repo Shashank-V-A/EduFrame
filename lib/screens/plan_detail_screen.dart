@@ -232,17 +232,34 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
   }
 
   Future<void> _duplicate() async {
+    final plan = _plan;
+    if (plan == null) return;
+
     final tomorrow = addDays(toDateString(DateTime.now()), 1);
-    final newId = await DatabaseService.instance.duplicatePlan(
-      widget.planId,
-      newDate: tomorrow,
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: parsePlanDate(tomorrow),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2035, 12, 31),
+      helpText: context.strings.duplicatePickDate,
     );
-    if (!mounted) return;
-    _snack('Copied for ${formatDisplayDate(tomorrow)}.');
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => PlanDetailScreen(planId: newId)),
-    );
+    if (picked == null) return;
+
+    final newDate = toDateString(picked);
+    try {
+      final newId = await DatabaseService.instance.duplicatePlan(
+        widget.planId,
+        newDate: newDate,
+      );
+      if (!mounted) return;
+      _snack(context.strings.duplicateSuccess(formatDisplayDate(newDate)));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => PlanDetailScreen(planId: newId)),
+      );
+    } catch (e) {
+      _snack('Could not duplicate: $e');
+    }
   }
 
   Future<void> _delete() async {
@@ -356,38 +373,121 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: palette.textMuted),
           ),
-          const SizedBox(height: 16),
-          OutlinedButton.icon(
-            onPressed: _sharePlan,
-            icon: const Icon(Icons.share_outlined),
-            label: Text(s.sharePlan),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: _saving ? null : _aiImprove,
-            icon: const Icon(Icons.smart_toy_outlined),
-            label: const Text('AI: Improve this plan'),
-          ),
-          const SizedBox(height: 8),
-          ElevatedButton.icon(
-            onPressed: () => setState(() => _editing = true),
-            icon: const Icon(Icons.edit_outlined),
-            label: const Text('Edit plan'),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: _duplicate,
-            icon: const Icon(Icons.copy_outlined),
-            label: const Text('Duplicate for another day'),
-          ),
-          const SizedBox(height: 8),
-          ElevatedButton.icon(
-            onPressed: _delete,
-            style: ElevatedButton.styleFrom(backgroundColor: palette.danger),
-            icon: const Icon(Icons.delete_outline),
-            label: const Text('Delete'),
-          ),
+          const SizedBox(height: 20),
+          _actionPanel(s, palette),
+          const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+
+  Widget _actionPanel(AppStrings s, AppPalette palette) {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: palette.border),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: _actionTile(
+                    icon: Icons.ios_share_rounded,
+                    label: s.sharePlan,
+                    palette: palette,
+                    onTap: _sharePlan,
+                  ),
+                ),
+                Expanded(
+                  child: _actionTile(
+                    icon: Icons.auto_awesome_outlined,
+                    label: s.aiImprovePlan,
+                    palette: palette,
+                    onTap: _saving ? null : _aiImprove,
+                  ),
+                ),
+                Expanded(
+                  child: _actionTile(
+                    icon: Icons.copy_all_outlined,
+                    label: s.duplicatePlan,
+                    palette: palette,
+                    onTap: _duplicate,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: FilledButton.icon(
+                onPressed: () => setState(() => _editing = true),
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: Text(s.editPlan),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            TextButton(
+              onPressed: _delete,
+              style: TextButton.styleFrom(
+                foregroundColor: palette.danger,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              child: Text(s.deletePlan),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _actionTile({
+    required IconData icon,
+    required String label,
+    required AppPalette palette,
+    required VoidCallback? onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: palette.accentSoft,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 20, color: palette.primary),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: palette.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -102,7 +102,14 @@ class AppStrings {
   String get createPlanWithAi => _t('Create plan with this', 'इससे योजना बनाएँ');
 
   // Share
-  String get sharePlan => _t('Share plan', 'योजना साझा करें');
+  String get sharePlan => _t('Share', 'साझा करें');
+  String get aiImprovePlan => _t('Improve', 'सुधारें');
+  String get editPlan => _t('Edit plan', 'योजना संपादित करें');
+  String get duplicatePlan => _t('Duplicate', 'प्रतिलिपि');
+  String get deletePlan => _t('Delete plan', 'योजना हटाएँ');
+  String get duplicatePickDate => _t('Duplicate to which date?', 'किस तारीख पर प्रतिलिपि बनाएँ?');
+  String duplicateSuccess(String date) =>
+      _t('Copied to $date.', '$date पर प्रतिलिपि बनाई गई।');
   String get saveToDevice => _t('Save to device', 'डिवाइस पर सहेजें');
 
   // Settings

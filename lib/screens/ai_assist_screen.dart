@@ -171,9 +171,13 @@ class _AiAssistScreenState extends State<AiAssistScreen> {
     return null;
   }
 
+  List<String> _assistantTexts() {
+    return _messages.where((m) => !m.isUser).map((m) => m.text).toList();
+  }
+
   PlanDraft _buildDraftFromChat() {
-    final result = _lastAssistantText() ?? '';
-    final parsed = AiResultParser.parse(result);
+    final assistantTexts = _assistantTexts();
+    final parsed = AiResultParser.parseConversation(assistantTexts);
     final topic = _topicController.text.trim();
     final className = _classController.text.trim();
     final subject = _subjectController.text.trim();
@@ -185,8 +189,39 @@ class _AiAssistScreenState extends State<AiAssistScreen> {
     var notes = parsed.notes;
 
     if (!parsed.hasStructuredContent && _lastTool == _AiTool.activities) {
-      activities = result;
+      final fallback = _lastAssistantText() ?? assistantTexts.join('\n\n');
+      activities = fallback.trim();
     }
+
+    return _draftFromParsed(
+      AiParsedSections(
+        objectives: objectives,
+        materials: materials,
+        activities: activities,
+        homework: homework,
+        notes: notes,
+        fullText: assistantTexts.isEmpty ? '' : assistantTexts.last,
+      ),
+      topic: topic,
+      className: className,
+      subject: subject,
+    );
+  }
+
+  bool _draftIsEmpty(PlanDraft draft) {
+    return draft.objectives.trim().isEmpty &&
+        draft.materials.trim().isEmpty &&
+        draft.activities.trim().isEmpty &&
+        draft.homework.trim().isEmpty &&
+        draft.notes.trim().isEmpty;
+  }
+
+  PlanDraft _draftFromParsed(AiParsedSections parsed, {required String topic, required String className, required String subject}) {
+    var objectives = parsed.objectives;
+    var materials = parsed.materials;
+    var activities = parsed.activities;
+    var homework = parsed.homework;
+    var notes = parsed.notes;
 
     final extraNotes = <String>[
       if (subject.isNotEmpty) 'Subject: $subject',
@@ -210,7 +245,47 @@ class _AiAssistScreenState extends State<AiAssistScreen> {
 
   Future<void> _createPlanWithAi() async {
     if (_lastAssistantText() == null) return;
-    final draft = _buildDraftFromChat();
+
+    final topic = _topicController.text.trim();
+    final className = _classController.text.trim();
+    final subject = _subjectController.text.trim();
+
+    final assistantTexts = _assistantTexts();
+    var draft = _buildDraftFromChat();
+
+    final needsConsolidation = _lastTool == _AiTool.activities &&
+        assistantTexts.isNotEmpty &&
+        draft.objectives.trim().isEmpty &&
+        draft.activities.trim().isEmpty;
+
+    if (needsConsolidation) {
+      setState(() => _loading = true);
+      try {
+        final structured = await GroqService.instance.structureLessonPlanFromChat(
+          messages: _historyForApi(),
+          topic: topic,
+          className: className,
+          subject: subject,
+        );
+        final parsed = AiResultParser.parseConversation([..._assistantTexts(), structured]);
+        draft = _draftFromParsed(parsed, topic: topic, className: className, subject: subject);
+        if (_draftIsEmpty(draft)) {
+          draft = _draftFromParsed(
+            AiResultParser.parse(structured),
+            topic: topic,
+            className: className,
+            subject: subject,
+          );
+        }
+      } catch (e) {
+        _snack('$e');
+        if (_draftIsEmpty(draft)) return;
+      } finally {
+        if (mounted) setState(() => _loading = false);
+      }
+    }
+
+    if (!mounted) return;
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => PlanNewScreen(draft: draft)),
@@ -295,8 +370,14 @@ class _AiAssistScreenState extends State<AiAssistScreen> {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _createPlanWithAi,
-                icon: const Icon(Icons.note_add_outlined),
+                onPressed: _loading ? null : _createPlanWithAi,
+                icon: _loading
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(Icons.note_add_outlined),
                 label: Text(s.createPlanWithAi),
               ),
             ),

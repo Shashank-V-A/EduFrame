@@ -173,99 +173,91 @@ class _TimetableScreenState extends State<TimetableScreen> {
   Widget build(BuildContext context) {
     final s = context.strings;
 
-    return Column(
-      children: [
-        ScreenHeader(
-          title: s.timetableTitle,
-          subtitle: s.timetableSubtitle,
-        ),
-        SizedBox(
-          height: 44,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            children: List.generate(7, (index) {
-              final day = index + 1;
-              final selected = day == _selectedDay;
+    return RefreshIndicator(
+      onRefresh: _load,
+      child: ListView(
+        children: [
+          ScreenHeader(
+            title: s.timetableTitle,
+            subtitle: s.timetableSubtitle,
+          ),
+          SizedBox(
+            height: 44,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              children: List.generate(7, (index) {
+                final day = index + 1;
+                final selected = day == _selectedDay;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: ChoiceChip(
+                    label: Text(dayNames[day]!.substring(0, 3)),
+                    selected: selected,
+                    onSelected: (_) => setState(() => _selectedDay = day),
+                  ),
+                );
+              }),
+            ),
+          ),
+          if (_daySlots.isEmpty)
+            EmptyState(
+              message: s.noPeriods,
+              hint: s.addPeriodsHint,
+              actionLabel: s.addPeriodAction,
+              onAction: () => _addOrEditSlot(),
+            )
+          else
+            ..._daySlots.map((slot) {
+              final hasClass = slot.classId != null;
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: ChoiceChip(
-                  label: Text(dayNames[day]!.substring(0, 3)),
-                  selected: selected,
-                  onSelected: (_) => setState(() => _selectedDay = day),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Card(
+                  child: ListTile(
+                    title: Text(
+                      timetableSlotLabel(slot),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: Text(
+                      '${formatTime12h(slot.startTime)} - ${formatTime12h(slot.endTime)}'
+                      '${slot.subject.isNotEmpty ? ' | ${slot.subject}' : ''}'
+                      '${slot.room.isNotEmpty ? ' | Room ${slot.room}' : ''}',
+                    ),
+                    trailing: PopupMenuButton<String>(
+                      onSelected: (value) {
+                        if (value == 'plan' && hasClass) {
+                          _planClass(slot);
+                        } else if (value == 'edit') {
+                          _addOrEditSlot(existing: slot);
+                        } else if (value == 'delete') {
+                          _deleteSlot(slot);
+                        }
+                      },
+                      itemBuilder: (_) => [
+                        if (hasClass)
+                          PopupMenuItem(value: 'plan', child: Text(s.planThisClass)),
+                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                        const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                      ],
+                    ),
+                    onTap: hasClass ? () => _planClass(slot) : null,
+                  ),
                 ),
               );
             }),
-          ),
-        ),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: _load,
-            child: _daySlots.isEmpty
-                ? ListView(
-                    children: [
-                      EmptyState(
-                        message: s.noPeriods,
-                        hint: s.addPeriodsHint,
-                        actionLabel: s.addPeriodAction,
-                        onAction: () => _addOrEditSlot(),
-                      ),
-                    ],
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _daySlots.length,
-                    itemBuilder: (context, index) {
-                      final slot = _daySlots[index];
-                      final hasClass = slot.classId != null;
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          title: Text(
-                            timetableSlotLabel(slot),
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          subtitle: Text(
-                            '${formatTime12h(slot.startTime)} - ${formatTime12h(slot.endTime)}'
-                            '${slot.subject.isNotEmpty ? ' | ${slot.subject}' : ''}'
-                            '${slot.room.isNotEmpty ? ' | Room ${slot.room}' : ''}',
-                          ),
-                          trailing: PopupMenuButton<String>(
-                            onSelected: (value) {
-                              if (value == 'plan' && hasClass) {
-                                _planClass(slot);
-                              } else if (value == 'edit') {
-                                _addOrEditSlot(existing: slot);
-                              } else if (value == 'delete') {
-                                _deleteSlot(slot);
-                              }
-                            },
-                            itemBuilder: (_) => [
-                              if (hasClass)
-                                PopupMenuItem(value: 'plan', child: Text(s.planThisClass)),
-                              const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                              const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                            ],
-                          ),
-                          onTap: hasClass ? () => _planClass(slot) : null,
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () => _addOrEditSlot(),
-              icon: const Icon(Icons.add),
-              label: Text('${s.addPeriod} (${dayNames[_selectedDay]})'),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _addOrEditSlot(),
+                icon: const Icon(Icons.add),
+                label: Text('${s.addPeriod} (${dayNames[_selectedDay]})'),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

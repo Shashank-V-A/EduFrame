@@ -84,12 +84,14 @@ class AppStrings {
   String get useInPlan => _t('Use in plan', 'योजना में उपयोग करें');
   String get applyObjectives => _t('Apply objectives', 'उद्देश्य लागू करें');
   String get applyActivities => _t('Apply activities', 'गतिविधियाँ लागू करें');
+  String get applyMaterials => _t('Apply materials', 'सामग्री लागू करें');
   String get applyHomework => _t('Apply homework', 'गृहकार्य लागू करें');
-  String get applyNotes => _t('Apply to notes', 'नोट्स में लागू करें');
+  String get applyNotes => _t('Apply teacher notes', 'शिक्षक नोट्स लागू करें');
   String get createPlanWithAi => _t('Create plan with this', 'इससे योजना बनाएँ');
 
   // Share
   String get sharePlan => _t('Share plan', 'योजना साझा करें');
+  String get saveToDevice => _t('Save to device', 'डिवाइस पर सहेजें');
 
   // Settings
   String get settingsTitle => _t('Settings', 'सेटिंग्स');

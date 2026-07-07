@@ -3,6 +3,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import '../models/models.dart';
+import '../utils/class_display.dart';
 import '../utils/date_utils.dart';
 
 class PdfService {
@@ -11,6 +12,39 @@ class PdfService {
     required String title,
     String? teacherName,
   }) async {
+    final doc = _buildDocument(
+      plans: plans,
+      title: title,
+      teacherName: teacherName,
+    );
+    await Printing.sharePdf(
+      bytes: await doc.save(),
+      filename: 'eduframe-lesson-plans.pdf',
+    );
+  }
+
+  static Future<void> sharePlan(LessonPlan plan) async {
+    final title = pdfSafe('${plan.topic} — Lesson Plan');
+    final doc = _buildDocument(plans: [plan], title: title);
+    await Printing.sharePdf(
+      bytes: await doc.save(),
+      filename: _planPdfFilename(plan),
+    );
+  }
+
+  static String _planPdfFilename(LessonPlan plan) {
+    final slug = plan.topic
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '-')
+        .replaceAll(RegExp(r'^-|-$'), '');
+    return 'eduframe-${slug.isEmpty ? 'lesson-plan' : slug}.pdf';
+  }
+
+  static pw.Document _buildDocument({
+    required List<LessonPlan> plans,
+    required String title,
+    String? teacherName,
+  }) {
     final doc = pw.Document();
     final safeTitle = pdfSafe(title);
 
@@ -71,7 +105,7 @@ class PdfService {
       ),
     );
 
-    await Printing.sharePdf(bytes: await doc.save(), filename: 'eduframe-lesson-plans.pdf');
+    return doc;
   }
 
   static pw.Widget _planSection(LessonPlan plan) {
@@ -90,7 +124,7 @@ class PdfService {
           ),
           pw.Text(
             pdfSafe(
-              '${formatDisplayDate(plan.planDate)} | ${plan.className} | ${plan.subject}',
+              '${formatDisplayDate(plan.planDate)} | ${lessonPlanClassLabel(plan)} | ${plan.subject}',
             ),
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
           ),

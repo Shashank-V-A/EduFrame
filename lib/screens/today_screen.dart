@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../constants/theme.dart';
 import '../l10n/app_strings.dart';
 import '../models/models.dart';
 import '../services/database_service.dart';
@@ -72,17 +73,42 @@ class _TodayScreenState extends State<TodayScreen> {
       child: ListView(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const AppLogo(size: 56, borderRadius: 14),
-                const SizedBox(width: 14),
+                const AppLogo(size: 52, borderRadius: 14),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: ScreenHeader(
-                    title: s.appTitle,
-                    subtitle: s.greetingSubtitle(greeting()),
-                    compact: true,
+                  child: Builder(
+                    builder: (context) {
+                      final palette = AppPalette.of(context);
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            s.appTitle,
+                            style: TextStyle(
+                              fontSize: 26,
+                              fontWeight: FontWeight.w800,
+                              color: palette.primary,
+                              letterSpacing: -0.5,
+                              height: 1.1,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            s.greetingSubtitle(greeting()),
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: palette.textSecondary,
+                              height: 1.35,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],

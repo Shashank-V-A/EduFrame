@@ -58,11 +58,13 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
     try {
       final result = await GroqService.instance.improveLessonPlan(
         topic: plan.topic,
-        className: plan.className,
+        className: lessonPlanClassLabel(plan),
         subject: plan.subject,
         objectives: plan.objectives,
+        materials: plan.materials,
         activities: plan.activities,
         homework: plan.homework,
+        notes: plan.notes,
       );
       if (!mounted) return;
       final parsed = AiResultParser.parse(result);
@@ -98,6 +100,14 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
                   },
                   child: Text(s.applyObjectives),
                 ),
+              if (parsed.materials.isNotEmpty)
+                OutlinedButton(
+                  onPressed: () {
+                    _applyAiField(materials: parsed.materials);
+                    Navigator.pop(context);
+                  },
+                  child: Text(s.applyMaterials),
+                ),
               if (parsed.activities.isNotEmpty)
                 OutlinedButton(
                   onPressed: () {
@@ -114,6 +124,14 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
                   },
                   child: Text(s.applyHomework),
                 ),
+              if (parsed.notes.isNotEmpty)
+                OutlinedButton(
+                  onPressed: () {
+                    _applyAiField(notes: parsed.notes);
+                    Navigator.pop(context);
+                  },
+                  child: Text(s.applyNotes),
+                ),
               if (!parsed.hasStructuredContent)
                 OutlinedButton(
                   onPressed: () {
@@ -126,9 +144,12 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
                 onPressed: () {
                   _applyAiField(
                     objectives: parsed.objectives.isNotEmpty ? parsed.objectives : null,
+                    materials: parsed.materials.isNotEmpty ? parsed.materials : null,
                     activities: parsed.activities.isNotEmpty ? parsed.activities : null,
                     homework: parsed.homework.isNotEmpty ? parsed.homework : null,
-                    notes: !parsed.hasStructuredContent ? fullText : null,
+                    notes: parsed.notes.isNotEmpty
+                        ? parsed.notes
+                        : (!parsed.hasStructuredContent ? fullText : null),
                   );
                   Navigator.pop(context);
                 },
@@ -146,6 +167,7 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
 
   void _applyAiField({
     String? objectives,
+    String? materials,
     String? activities,
     String? homework,
     String? notes,
@@ -156,6 +178,9 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
     setState(() {
       if (objectives != null && objectives.isNotEmpty) {
         form.objectives = _mergeField(form.objectives, objectives);
+      }
+      if (materials != null && materials.isNotEmpty) {
+        form.materials = _mergeField(form.materials, materials);
       }
       if (activities != null && activities.isNotEmpty) {
         form.activities = _mergeField(form.activities, activities);
@@ -174,6 +199,16 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
   String _mergeField(String existing, String incoming) {
     if (existing.trim().isEmpty) return incoming.trim();
     return '${existing.trim()}\n\n$incoming'.trim();
+  }
+
+  Future<void> _sharePlan() async {
+    final plan = _plan;
+    if (plan == null) return;
+    try {
+      await ShareService.instance.sharePlan(plan);
+    } catch (e) {
+      _snack('Could not share plan: $e');
+    }
   }
 
   Future<void> _save() async {
@@ -323,7 +358,7 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
           ),
           const SizedBox(height: 16),
           OutlinedButton.icon(
-            onPressed: () => ShareService.instance.sharePlan(plan),
+            onPressed: _sharePlan,
             icon: const Icon(Icons.share_outlined),
             label: Text(s.sharePlan),
           ),

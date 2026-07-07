@@ -4,6 +4,7 @@ import '../constants/theme.dart';
 import '../models/models.dart';
 import '../services/database_service.dart';
 import '../services/pdf_service.dart';
+import '../utils/class_display.dart';
 import '../utils/date_utils.dart';
 import '../widgets/common.dart';
 
@@ -84,7 +85,9 @@ class _ExportScreenState extends State<ExportScreen> {
 
       final classLabel = _selectedClassId == null
           ? 'All classes'
-          : _classes.firstWhere((c) => c.id == _selectedClassId).name;
+          : teachingClassLabel(
+              _classes.firstWhere((c) => c.id == _selectedClassId),
+            );
 
       final title =
           'Lesson Plans - $classLabel (${_startController.text} to ${_endController.text})';
@@ -220,7 +223,7 @@ class _ExportScreenState extends State<ExportScreen> {
                       ),
                       ..._classes.map(
                         (cls) => ChoiceChip(
-                          label: Text(cls.name),
+                          label: Text(teachingClassLabel(cls)),
                           selected: _selectedClassId == cls.id,
                           onSelected: (_) async {
                             setState(() => _selectedClassId = cls.id);

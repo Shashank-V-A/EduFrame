@@ -16,6 +16,12 @@ class DatabaseService {
     JOIN classes c ON c.id = p.class_id
   ''';
 
+  static const _timetableSelect = '''
+    SELECT t.*, c.name as class_name, c.subject
+    FROM timetable_slots t
+    LEFT JOIN classes c ON c.id = t.class_id
+  ''';
+
   Future<Database> get database async {
     if (_db != null) return _db!;
     _db = await _open();
@@ -27,18 +33,29 @@ class DatabaseService {
     final path = join(dbPath, 'eduframe.db');
     final db = await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
       },
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
     await _seedIfEmpty(db);
     return db;
   }
 
   Future<void> _onCreate(Database db, int version) async {
-    await db.execute('PRAGMA foreign_keys = ON');
+    await _createCoreTables(db);
+    await _createTimetableTable(db);
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _createTimetableTable(db);
+    }
+  }
+
+  Future<void> _createCoreTables(Database db) async {
     await db.execute('''
       CREATE TABLE classes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,11 +81,24 @@ class DatabaseService {
         FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
       )
     ''');
+    await db.execute('CREATE INDEX idx_plans_date ON lesson_plans(plan_date)');
+    await db.execute('CREATE INDEX idx_plans_topic ON lesson_plans(topic)');
+  }
+
+  Future<void> _createTimetableTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS timetable_slots (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        class_id INTEGER,
+        day_of_week INTEGER NOT NULL,
+        start_time TEXT NOT NULL,
+        end_time TEXT NOT NULL,
+        room TEXT NOT NULL DEFAULT '',
+        FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE SET NULL
+      )
+    ''');
     await db.execute(
-      'CREATE INDEX idx_plans_date ON lesson_plans(plan_date)',
-    );
-    await db.execute(
-      'CREATE INDEX idx_plans_topic ON lesson_plans(topic)',
+      'CREATE INDEX IF NOT EXISTS idx_timetable_day ON timetable_slots(day_of_week)',
     );
   }
 
@@ -107,20 +137,11 @@ class DatabaseService {
     });
   }
 
-  Future<void> updateClass(
-    int id,
-    String name,
-    String subject,
-    String section,
-  ) async {
+  Future<void> updateClass(int id, String name, String subject, String section) async {
     final db = await database;
     await db.update(
       'classes',
-      {
-        'name': name.trim(),
-        'subject': subject.trim(),
-        'section': section.trim(),
-      },
+      {'name': name.trim(), 'subject': subject.trim(), 'section': section.trim()},
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -133,9 +154,10 @@ class DatabaseService {
 
   Future<List<LessonPlan>> getPlansForDate(String date) async {
     final db = await database;
+    final normalized = normalizePlanDate(date);
     final rows = await db.rawQuery(
-      '$_planSelect WHERE p.plan_date = ? ORDER BY c.name ASC',
-      [date],
+      '$_planSelect WHERE date(p.plan_date) = date(?) ORDER BY c.name ASC',
+      [normalized],
     );
     return rows.map(LessonPlan.fromMap).toList();
   }
@@ -143,9 +165,23 @@ class DatabaseService {
   Future<List<LessonPlan>> getAllPlans() async {
     final db = await database;
     final rows = await db.rawQuery(
-      '$_planSelect ORDER BY p.plan_date DESC, c.name ASC',
+      '$_planSelect ORDER BY date(p.plan_date) DESC, c.name ASC',
     );
     return rows.map(LessonPlan.fromMap).toList();
+  }
+
+  Future<PlanDateExtent> getPlanDateExtent() async {
+    final db = await database;
+    final rows = await db.rawQuery(
+      'SELECT MIN(date(plan_date)) as min_date, MAX(date(plan_date)) as max_date, COUNT(*) as count FROM lesson_plans',
+    );
+    if (rows.isEmpty) return const PlanDateExtent();
+    final row = rows.first;
+    return PlanDateExtent(
+      minDate: row['min_date'] as String?,
+      maxDate: row['max_date'] as String?,
+      count: (row['count'] as int?) ?? 0,
+    );
   }
 
   Future<List<LessonPlan>> searchPlans(String query) async {
@@ -155,7 +191,7 @@ class DatabaseService {
       '''$_planSelect
          WHERE p.topic LIKE ? OR p.objectives LIKE ?
             OR p.activities LIKE ? OR p.homework LIKE ?
-         ORDER BY p.plan_date DESC''',
+         ORDER BY date(p.plan_date) DESC''',
       [term, term, term, term],
     );
     return rows.map(LessonPlan.fromMap).toList();
@@ -172,9 +208,10 @@ class DatabaseService {
     if (data.classId == null) throw Exception('Class is required');
     final db = await database;
     final now = DateTime.now().toIso8601String();
+    final planDate = normalizePlanDate(data.planDate);
     return db.insert('lesson_plans', {
       'class_id': data.classId,
-      'plan_date': data.planDate,
+      'plan_date': planDate,
       'topic': data.topic.trim(),
       'objectives': data.objectives.trim(),
       'activities': data.activities.trim(),
@@ -193,7 +230,7 @@ class DatabaseService {
       'lesson_plans',
       {
         'class_id': data.classId,
-        'plan_date': data.planDate,
+        'plan_date': normalizePlanDate(data.planDate),
         'topic': data.topic.trim(),
         'objectives': data.objectives.trim(),
         'activities': data.activities.trim(),
@@ -224,14 +261,78 @@ class DatabaseService {
     int? classId,
   }) async {
     final db = await database;
-    var query = '$_planSelect WHERE p.plan_date BETWEEN ? AND ?';
-    final args = <Object>[startDate, endDate];
+    final start = normalizePlanDate(startDate);
+    final end = normalizePlanDate(endDate);
+    var query = '$_planSelect WHERE date(p.plan_date) BETWEEN date(?) AND date(?)';
+    final args = <Object>[start, end];
     if (classId != null) {
       query += ' AND p.class_id = ?';
       args.add(classId);
     }
-    query += ' ORDER BY p.plan_date ASC, c.name ASC';
+    query += ' ORDER BY date(p.plan_date) ASC, c.name ASC';
     final rows = await db.rawQuery(query, args);
     return rows.map(LessonPlan.fromMap).toList();
+  }
+
+  Future<List<TimetableSlot>> getAllTimetableSlots() async {
+    final db = await database;
+    final rows = await db.rawQuery(
+      '$_timetableSelect ORDER BY t.day_of_week ASC, t.start_time ASC',
+    );
+    return rows.map(TimetableSlot.fromMap).toList();
+  }
+
+  Future<List<TimetableSlot>> getTimetableForDay(int dayOfWeek) async {
+    final db = await database;
+    final rows = await db.rawQuery(
+      '$_timetableSelect WHERE t.day_of_week = ? ORDER BY t.start_time ASC',
+      [dayOfWeek],
+    );
+    return rows.map(TimetableSlot.fromMap).toList();
+  }
+
+  Future<int> createTimetableSlot({
+    int? classId,
+    required int dayOfWeek,
+    required String startTime,
+    required String endTime,
+    String room = '',
+  }) async {
+    final db = await database;
+    return db.insert('timetable_slots', {
+      'class_id': classId,
+      'day_of_week': dayOfWeek,
+      'start_time': startTime,
+      'end_time': endTime,
+      'room': room.trim(),
+    });
+  }
+
+  Future<void> updateTimetableSlot({
+    required int id,
+    int? classId,
+    required int dayOfWeek,
+    required String startTime,
+    required String endTime,
+    String room = '',
+  }) async {
+    final db = await database;
+    await db.update(
+      'timetable_slots',
+      {
+        'class_id': classId,
+        'day_of_week': dayOfWeek,
+        'start_time': startTime,
+        'end_time': endTime,
+        'room': room.trim(),
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> deleteTimetableSlot(int id) async {
+    final db = await database;
+    await db.delete('timetable_slots', where: 'id = ?', whereArgs: [id]);
   }
 }

@@ -37,7 +37,9 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return Scaffold(
+      appBar: AppBar(title: const Text('Search')),
+      body: SafeArea(
       child: Column(
         children: [
           const ScreenHeader(
@@ -83,6 +85,7 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 }

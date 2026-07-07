@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'constants/theme.dart';
 import 'screens/home_shell.dart';
 import 'services/database_service.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,8 @@ Future<void> main() async {
   };
 
   await DatabaseService.instance.database;
+  await NotificationService.instance.init();
+  await NotificationService.instance.rescheduleFromDatabase();
 
   runApp(const EduFrameApp());
 }

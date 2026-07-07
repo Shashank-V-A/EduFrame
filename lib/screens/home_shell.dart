@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../constants/theme.dart';
-import 'classes_screen.dart';
-import 'export_screen.dart';
+import 'ai_assist_screen.dart';
+import 'more_screen.dart';
 import 'plans_screen.dart';
-import 'search_screen.dart';
+import 'timetable_screen.dart';
 import 'today_screen.dart';
 
 class HomeShell extends StatefulWidget {
@@ -20,9 +20,9 @@ class _HomeShellState extends State<HomeShell> {
   final _screens = const [
     TodayScreen(),
     PlansScreen(),
-    SearchScreen(),
-    ClassesScreen(),
-    ExportScreen(),
+    TimetableScreen(),
+    AiAssistScreen(),
+    MoreScreen(),
   ];
 
   @override
@@ -49,18 +49,18 @@ class _HomeShellState extends State<HomeShell> {
             label: 'Plans',
           ),
           NavigationDestination(
-            icon: Icon(Icons.search),
-            label: 'Search',
+            icon: Icon(Icons.calendar_month_outlined),
+            selectedIcon: Icon(Icons.calendar_month),
+            label: 'Schedule',
           ),
           NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
-            label: 'Classes',
+            icon: Icon(Icons.auto_awesome_outlined),
+            selectedIcon: Icon(Icons.auto_awesome),
+            label: 'AI',
           ),
           NavigationDestination(
-            icon: Icon(Icons.description_outlined),
-            selectedIcon: Icon(Icons.description),
-            label: 'Export',
+            icon: Icon(Icons.more_horiz),
+            label: 'More',
           ),
         ],
       ),

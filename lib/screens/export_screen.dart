@@ -21,14 +21,38 @@ class _ExportScreenState extends State<ExportScreen> {
   List<TeachingClass> _classes = [];
   int? _selectedClassId;
   bool _exporting = false;
+  int _matchCount = 0;
+  bool _loaded = false;
 
   @override
   void initState() {
     super.initState();
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    final classes = await DatabaseService.instance.getAllClasses();
+    final extent = await DatabaseService.instance.getPlanDateExtent();
     final today = toDateString(DateTime.now());
-    _startController.text = '${today.substring(0, 7)}-01';
-    _endController.text = today;
-    _loadClasses();
+    final future = addDays(today, 30);
+
+    String start = '${today.substring(0, 7)}-01';
+    String end = future;
+
+    if (extent.hasPlans) {
+      start = extent.minDate ?? start;
+      end = extent.maxDate ?? end;
+      if (end.compareTo(today) < 0) end = future;
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _classes = classes;
+      _startController.text = start;
+      _endController.text = end;
+      _loaded = true;
+    });
+    await _refreshCount();
   }
 
   @override
@@ -39,10 +63,14 @@ class _ExportScreenState extends State<ExportScreen> {
     super.dispose();
   }
 
-  Future<void> _loadClasses() async {
-    final classes = await DatabaseService.instance.getAllClasses();
+  Future<void> _refreshCount() async {
+    final plans = await DatabaseService.instance.getPlansInRange(
+      _startController.text.trim(),
+      _endController.text.trim(),
+      classId: _selectedClassId,
+    );
     if (!mounted) return;
-    setState(() => _classes = classes);
+    setState(() => _matchCount = plans.length);
   }
 
   Future<void> _export() async {
@@ -59,7 +87,7 @@ class _ExportScreenState extends State<ExportScreen> {
           : _classes.firstWhere((c) => c.id == _selectedClassId).name;
 
       final title =
-          'Lesson Plans — $classLabel (${_startController.text} to ${_endController.text})';
+          'Lesson Plans - $classLabel (${_startController.text} to ${_endController.text})';
 
       await PdfService.exportPlans(
         plans: plans,
@@ -70,7 +98,11 @@ class _ExportScreenState extends State<ExportScreen> {
       );
 
       if (plans.isEmpty && mounted) {
-        _showSnack('PDF created, but no plans were found in this date range.');
+        _showSnack(
+          'No plans in this date range. Try "All saved plans" or widen the end date.',
+        );
+      } else if (mounted) {
+        _showSnack('Exported ${plans.length} lesson plan(s).');
       }
     } catch (e) {
       if (mounted) _showSnack('Export failed: $e');
@@ -79,18 +111,35 @@ class _ExportScreenState extends State<ExportScreen> {
     }
   }
 
+  Future<void> _useAllSavedPlans() async {
+    final extent = await DatabaseService.instance.getPlanDateExtent();
+    if (!extent.hasPlans) {
+      _showSnack('No saved plans yet.');
+      return;
+    }
+    setState(() {
+      _startController.text = extent.minDate!;
+      _endController.text = extent.maxDate!;
+    });
+    await _refreshCount();
+  }
+
   void _showSnack(String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_loaded) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
       children: [
         const ScreenHeader(
           title: 'Export PDF',
-          subtitle: 'Submit term plans to your HOD — clean, readable, professional.',
+          subtitle: 'Submit term plans to your HOD. Includes upcoming plans too.',
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -105,6 +154,30 @@ class _ExportScreenState extends State<ExportScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.accentSoft,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      _matchCount == 0
+                          ? 'No plans match this date range yet.'
+                          : '$_matchCount plan(s) will be included in the PDF.',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.text,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: _useAllSavedPlans,
+                    icon: const Icon(Icons.select_all),
+                    label: const Text('Use all saved plans'),
+                  ),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: _teacherController,
                     decoration: const InputDecoration(
@@ -115,6 +188,7 @@ class _ExportScreenState extends State<ExportScreen> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: _startController,
+                    onChanged: (_) => _refreshCount(),
                     decoration: const InputDecoration(
                       labelText: 'From date',
                       hintText: 'YYYY-MM-DD',
@@ -123,9 +197,10 @@ class _ExportScreenState extends State<ExportScreen> {
                   const SizedBox(height: 12),
                   TextField(
                     controller: _endController,
+                    onChanged: (_) => _refreshCount(),
                     decoration: const InputDecoration(
                       labelText: 'To date',
-                      hintText: 'YYYY-MM-DD',
+                      hintText: 'YYYY-MM-DD (include future dates for tomorrow\'s plans)',
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -138,13 +213,19 @@ class _ExportScreenState extends State<ExportScreen> {
                       ChoiceChip(
                         label: const Text('All classes'),
                         selected: _selectedClassId == null,
-                        onSelected: (_) => setState(() => _selectedClassId = null),
+                        onSelected: (_) async {
+                          setState(() => _selectedClassId = null);
+                          await _refreshCount();
+                        },
                       ),
                       ..._classes.map(
                         (cls) => ChoiceChip(
                           label: Text(cls.name),
                           selected: _selectedClassId == cls.id,
-                          onSelected: (_) => setState(() => _selectedClassId = cls.id),
+                          onSelected: (_) async {
+                            setState(() => _selectedClassId = cls.id);
+                            await _refreshCount();
+                          },
                         ),
                       ),
                     ],
@@ -166,7 +247,7 @@ class _ExportScreenState extends State<ExportScreen> {
         const Padding(
           padding: EdgeInsets.all(16),
           child: Text(
-            'Tip: Set the date range to a full term (e.g. April–September) before HOD submission.',
+            'Tip: If you used "Plan for tomorrow", make sure the end date includes that day.',
             style: TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.4),
           ),
         ),

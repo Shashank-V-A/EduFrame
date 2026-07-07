@@ -43,7 +43,7 @@ class PlanForm extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.only(top: 8),
             child: Text(
-              'Add a class first from the Classes tab.',
+              'Add a class first from More > Classes.',
               style: TextStyle(color: AppColors.textMuted, fontSize: 13),
             ),
           ),

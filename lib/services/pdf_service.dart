@@ -12,6 +12,7 @@ class PdfService {
     String? teacherName,
   }) async {
     final doc = pw.Document();
+    final safeTitle = pdfSafe(title);
 
     doc.addPage(
       pw.MultiPage(
@@ -21,7 +22,7 @@ class PdfService {
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               pw.Text(
-                title,
+                safeTitle,
                 style: pw.TextStyle(
                   fontSize: 22,
                   fontWeight: pw.FontWeight.bold,
@@ -32,14 +33,14 @@ class PdfService {
                 pw.Padding(
                   padding: const pw.EdgeInsets.only(top: 6),
                   child: pw.Text(
-                    'Prepared by $teacherName',
+                    'Prepared by ${pdfSafe(teacherName)}',
                     style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700),
                   ),
                 ),
               pw.Padding(
                 padding: const pw.EdgeInsets.only(top: 4, bottom: 16),
                 child: pw.Text(
-                  'Generated from EduFrame · ${DateTime.now().toLocal()}',
+                  'Generated from EduFrame | ${pdfSafe(DateTime.now().toLocal().toString())}',
                   style: const pw.TextStyle(fontSize: 11, color: PdfColors.grey600),
                 ),
               ),
@@ -62,7 +63,7 @@ class PdfService {
           pw.SizedBox(height: 24),
           pw.Center(
             child: pw.Text(
-              'EduFrame — your plans, organized.',
+              'EduFrame - your plans, organized.',
               style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey500),
             ),
           ),
@@ -84,11 +85,13 @@ class PdfService {
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(
-            plan.topic,
+            pdfSafe(plan.topic),
             style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
           ),
           pw.Text(
-            '${formatDisplayDate(plan.planDate)} · ${plan.className} · ${plan.subject}',
+            pdfSafe(
+              '${formatDisplayDate(plan.planDate)} | ${plan.className} | ${plan.subject}',
+            ),
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
           ),
           pw.SizedBox(height: 10),
@@ -116,7 +119,7 @@ class PdfService {
               color: PdfColor.fromHex('#2C4A6E'),
             ),
           ),
-          pw.Text(body, style: const pw.TextStyle(fontSize: 11)),
+          pw.Text(pdfSafe(body), style: const pw.TextStyle(fontSize: 11)),
         ],
       ),
     );

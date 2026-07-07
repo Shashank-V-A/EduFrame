@@ -79,6 +79,43 @@ class LessonPlan {
   }
 }
 
+class TimetableSlot {
+  final int id;
+  final int? classId;
+  final int dayOfWeek;
+  final String startTime;
+  final String endTime;
+  final String room;
+  final String className;
+  final String subject;
+
+  const TimetableSlot({
+    required this.id,
+    this.classId,
+    required this.dayOfWeek,
+    required this.startTime,
+    required this.endTime,
+    required this.room,
+    required this.className,
+    required this.subject,
+  });
+
+  factory TimetableSlot.fromMap(Map<String, Object?> map) {
+    return TimetableSlot(
+      id: map['id'] as int,
+      classId: map['class_id'] as int?,
+      dayOfWeek: map['day_of_week'] as int,
+      startTime: map['start_time'] as String,
+      endTime: map['end_time'] as String,
+      room: map['room'] as String? ?? '',
+      className: map['class_name'] as String? ?? 'Free period',
+      subject: map['subject'] as String? ?? '',
+    );
+  }
+
+  String get dayLabel => dayNames[dayOfWeek] ?? 'Day $dayOfWeek';
+}
+
 class PlanFormData {
   int? classId;
   String planDate;
@@ -119,3 +156,23 @@ class PlanFormData {
     );
   }
 }
+
+class PlanDateExtent {
+  final String? minDate;
+  final String? maxDate;
+  final int count;
+
+  const PlanDateExtent({this.minDate, this.maxDate, this.count = 0});
+
+  bool get hasPlans => count > 0;
+}
+
+const dayNames = {
+  1: 'Monday',
+  2: 'Tuesday',
+  3: 'Wednesday',
+  4: 'Thursday',
+  5: 'Friday',
+  6: 'Saturday',
+  7: 'Sunday',
+};

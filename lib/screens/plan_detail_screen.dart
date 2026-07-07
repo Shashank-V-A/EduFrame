@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../constants/theme.dart';
 import '../models/models.dart';
 import '../services/database_service.dart';
+import '../services/groq_service.dart';
 import '../utils/date_utils.dart';
 import '../widgets/plan_form.dart';
 
@@ -44,6 +45,38 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
       _form = PlanFormData.fromPlan(plan);
       _classes = results[1] as List<TeachingClass>;
     });
+  }
+
+  Future<void> _aiImprove() async {
+    final plan = _plan;
+    if (plan == null) return;
+
+    setState(() => _saving = true);
+    try {
+      final result = await GroqService.instance.improveLessonPlan(
+        topic: plan.topic,
+        className: plan.className,
+        subject: plan.subject,
+        objectives: plan.objectives,
+        activities: plan.activities,
+        homework: plan.homework,
+      );
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('AI suggestions'),
+          content: SingleChildScrollView(child: SelectableText(result)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+          ],
+        ),
+      );
+    } catch (e) {
+      _snack('$e');
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
   }
 
   Future<void> _save() async {
@@ -188,6 +221,12 @@ class _PlanDetailScreenState extends State<PlanDetailScreen> {
             style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
           ),
           const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: _saving ? null : _aiImprove,
+            icon: const Icon(Icons.auto_awesome_outlined),
+            label: const Text('AI: Improve this plan'),
+          ),
+          const SizedBox(height: 8),
           ElevatedButton.icon(
             onPressed: () => setState(() => _editing = true),
             icon: const Icon(Icons.edit_outlined),

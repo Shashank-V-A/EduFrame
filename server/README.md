@@ -1,37 +1,29 @@
-# EduFrame Groq proxy (Vercel)
+# EduFrame AI proxy (Vercel)
 
-Secure Groq access for the mobile app. The Groq API key stays on the server.
+Production URL: `https://eduframe.vercel.app/api/groq`
 
-**Production URL:** `https://eduframe.vercel.app/api/groq`
+## Environment variables (Vercel)
 
-## Git auto-deploy
+| Variable | Required | Notes |
+|----------|----------|-------|
+| `GROQ_API_KEY` | Yes | Groq API secret |
+| `GOOGLE_WEB_CLIENT_ID` | Recommended | Web OAuth client; defaults to the app’s configured Web client ID |
 
-The API lives at the **repo root** (`/api/groq.js` + `/vercel.json`) so Vercel can deploy from the connected EduFrame GitHub repo without a custom root directory.
+## Auth
 
-Every push to `main` redeploys the proxy. `GROQ_API_KEY` is stored in Vercel env vars (not in git).
+Every `POST` must include `Authorization: Bearer <Google ID token>`. The proxy verifies the token with `google-auth-library` (audience = Web client ID) and applies a simple per-user rate limit (~30 requests / minute).
 
-**Vercel project:** `eduframe.vercel.app` (dashboard may still show project name `server`)
+## Legal pages
 
-## Run the Flutter app
+Static HTML in `/public`:
 
-The app uses the production proxy by default:
+- https://eduframe.vercel.app/privacy.html
+- https://eduframe.vercel.app/terms.html
 
-```powershell
-flutter run
+## Local dependency install
+
+From the repo root (needed for Vercel / local Node checks):
+
+```bash
+npm install
 ```
-
-Release build:
-
-```powershell
-flutter build apk --release
-```
-
-## Local dev fallback
-
-To bypass the proxy and call Groq directly during testing:
-
-```powershell
-flutter run --dart-define=GROQ_PROXY_URL= --dart-define=GROQ_API_KEY=your_key
-```
-
-The app sends the signed-in user's Google ID token with each proxy request.

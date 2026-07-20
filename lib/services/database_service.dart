@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:path/path.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../models/models.dart';
@@ -9,6 +12,9 @@ class DatabaseService {
   static final DatabaseService instance = DatabaseService._();
 
   Database? _db;
+  String? _activeUserId;
+
+  static const _legacyMigratedKey = 'legacy_db_migrated_to';
 
   static const _planSelect = '''
     SELECT p.*, c.name as class_name, c.subject, c.section
@@ -22,17 +28,45 @@ class DatabaseService {
     LEFT JOIN classes c ON c.id = t.class_id
   ''';
 
+  String? get activeUserId => _activeUserId;
+
   Future<Database> get database async {
     if (_db != null) return _db!;
-    _db = await _open();
-    return _db!;
+    throw StateError(
+      'Database is not bound to a user. Call bindUser() after Google Sign-In.',
+    );
   }
 
-  Future<Database> _open() async {
+  /// Opens (or switches to) the SQLite file for [userId].
+  Future<void> bindUser(String userId) async {
+    final id = userId.trim();
+    if (id.isEmpty) {
+      throw ArgumentError('userId is required');
+    }
+    if (_activeUserId == id && _db != null) return;
+
+    await _db?.close();
+    _db = null;
+    _activeUserId = id;
+    _db = await _openForUser(id);
+  }
+
+  Future<void> unbindUser() async {
+    await _db?.close();
+    _db = null;
+    _activeUserId = null;
+  }
+
+  String _safeFileToken(String userId) =>
+      userId.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+
+  Future<Database> _openForUser(String userId) async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'eduframe.db');
+    final userPath = join(dbPath, 'eduframe_${_safeFileToken(userId)}.db');
+    await _maybeMigrateLegacyDb(userId, userPath);
+
     final db = await openDatabase(
-      path,
+      userPath,
       version: 2,
       onConfigure: (database) async {
         await database.execute('PRAGMA foreign_keys = ON');
@@ -42,6 +76,23 @@ class DatabaseService {
     );
     await _seedIfEmpty(db);
     return db;
+  }
+
+  /// One-time copy of pre-scoping `eduframe.db` into the first user's file.
+  Future<void> _maybeMigrateLegacyDb(String userId, String userPath) async {
+    final userFile = File(userPath);
+    if (await userFile.exists()) return;
+
+    final dbPath = await getDatabasesPath();
+    final legacy = File(join(dbPath, 'eduframe.db'));
+    if (!await legacy.exists()) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final already = prefs.getString(_legacyMigratedKey);
+    if (already != null && already.isNotEmpty) return;
+
+    await legacy.copy(userPath);
+    await prefs.setString(_legacyMigratedKey, userId);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -334,6 +385,37 @@ class DatabaseService {
   Future<void> deleteTimetableSlot(int id) async {
     final db = await database;
     await db.delete('timetable_slots', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// Deletes all classes, plans, and timetable rows for the bound user.
+  Future<void> deleteAllLocalData() async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.delete('timetable_slots');
+      await txn.delete('lesson_plans');
+      await txn.delete('classes');
+    });
+  }
+
+  /// Wipes local tables and removes the user DB file from disk.
+  Future<void> wipeUserDatabase() async {
+    final userId = _activeUserId;
+    await deleteAllLocalData();
+    await unbindUser();
+    if (userId == null) return;
+
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'eduframe_${_safeFileToken(userId)}.db');
+    final file = File(path);
+    if (await file.exists()) {
+      await file.delete();
+    }
+    for (final suffix in ['-wal', '-shm', '-journal']) {
+      final extra = File('$path$suffix');
+      if (await extra.exists()) {
+        await extra.delete();
+      }
+    }
   }
 
   Future<void> importAllData({

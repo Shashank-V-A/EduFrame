@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'database_service.dart';
+
 class AuthService {
   AuthService._();
   static final AuthService instance = AuthService._();
@@ -20,6 +22,9 @@ class AuthService {
       googleWebClientId.trim().isNotEmpty &&
       googleAndroidClientId.trim().isNotEmpty;
 
+  /// Google account subject / stable user id for the signed-in user.
+  String? get currentUserId => currentUser.value?.id;
+
   Future<void> initialize() async {
     if (_initialized) return;
 
@@ -32,8 +37,10 @@ class AuthService {
       switch (event) {
         case GoogleSignInAuthenticationEventSignIn():
           currentUser.value = event.user;
+          _bindDatabase(event.user);
         case GoogleSignInAuthenticationEventSignOut():
           currentUser.value = null;
+          DatabaseService.instance.unbindUser();
       }
     }).onError((Object error, StackTrace stackTrace) {
       debugPrint('GoogleSignIn error: $error');
@@ -42,10 +49,25 @@ class AuthService {
     final Future<GoogleSignInAccount?>? attempt =
         _signIn.attemptLightweightAuthentication();
     if (attempt != null) {
-      currentUser.value = await attempt;
+      final user = await attempt;
+      currentUser.value = user;
+      await _bindDatabase(user);
     }
 
     _initialized = true;
+  }
+
+  Future<void> _bindDatabase(GoogleSignInAccount? user) async {
+    if (user == null) {
+      await DatabaseService.instance.unbindUser();
+      return;
+    }
+    final id = user.id;
+    if (id.isEmpty) {
+      debugPrint('Google user id is empty; database not bound');
+      return;
+    }
+    await DatabaseService.instance.bindUser(id);
   }
 
   Future<void> signIn() async {
@@ -57,12 +79,15 @@ class AuthService {
     if (!_signIn.supportsAuthenticate()) {
       throw Exception('Google Sign-In is not supported on this device.');
     }
-    await _signIn.authenticate();
+    final user = await _signIn.authenticate();
+    currentUser.value = user;
+    await _bindDatabase(user);
   }
 
   Future<void> signOut() async {
     await _signIn.signOut();
     currentUser.value = null;
+    await DatabaseService.instance.unbindUser();
   }
 
   Future<String?> getIdToken() async {

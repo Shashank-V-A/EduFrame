@@ -1,0 +1,23 @@
+EduFrame is a focused lesson-plan notebook for teachers.
+
+Plan tonight. Teach tomorrow.
+
+WHAT YOU CAN DO
+• Write structured lesson plans (objectives, materials, activities, homework, notes)
+• Organize classes and sections you teach
+• Build a weekly timetable with reminders before each period
+• Browse and search every plan in your notebook
+• Duplicate plans to another date
+• Export and share PDFs for your HOD or co-teachers
+• Get AI Assist for activities, homework, differentiation, and plan improvements
+• Work offline — your plans live on your device
+• Back up to Google Drive or a shared file, and restore when you need to
+• Use Hindi labels and dark mode
+
+PRIVACY & YOUR DATA
+Lesson plans stay on your device unless you export, share, or back them up. Sign-in uses Google. AI Assist sends only the prompts you choose to our secure proxy (Groq). You can delete all local EduFrame data from Settings.
+
+Privacy policy: https://eduframe.vercel.app/privacy.html
+Terms: https://eduframe.vercel.app/terms.html
+
+Built for teachers who want a calm planning tool — not a full school ERP.

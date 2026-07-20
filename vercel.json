@@ -4,12 +4,28 @@
     {
       "src": "api/groq.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
     {
       "src": "/api/groq",
       "dest": "/api/groq.js"
+    },
+    {
+      "src": "/privacy(?:\\.html)?",
+      "dest": "/public/privacy.html"
+    },
+    {
+      "src": "/terms(?:\\.html)?",
+      "dest": "/public/terms.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
     }
   ]
 }

@@ -124,9 +124,31 @@ class AppStrings {
   String get backupNow => _t('Backup to Google Drive', 'Google Drive पर बैकअप');
   String get restoreBackup => _t('Restore from backup', 'बैकअप से पुनर्स्थापित');
   String get shareBackupFile => _t('Share backup file', 'बैकअप फ़ाइल साझा करें');
+  String get restoreFromDrive =>
+      _t('Restore from Google Drive', 'Google Drive से पुनर्स्थापित');
+  String get restoreFromFile =>
+      _t('Restore from file', 'फ़ाइल से पुनर्स्थापित');
+  String get backupSuccess => _t('Backup complete.', 'बैकअप पूरा हुआ।');
+  String get restoreSuccess => _t('Restore complete.', 'पुनर्स्थापना पूरी हुई।');
   String get notifications => _t('Class reminders', 'कक्षा अनुस्मारक');
   String get saveSettings => _t('Save settings', 'सेटिंग्स सहेजें');
   String get logout => _t('Log out', 'लॉग आउट');
+  String get privacyPolicy => _t('Privacy policy', 'गोपनीयता नीति');
+  String get termsOfService => _t('Terms of service', 'सेवा की शर्तें');
+  String get deleteMyData => _t('Delete my data', 'मेरा डेटा हटाएँ');
+  String get deleteMyDataHint => _t(
+        'Remove all lesson plans, classes, and timetable for this account on this device.',
+        'इस डिवाइस पर इस खाते की सभी पाठ योजनाएँ, कक्षाएँ और समय सारणी हटाएँ।',
+      );
+  String get deleteMyDataConfirm => _t(
+        'This permanently deletes your local EduFrame data for this Google account on this device. You will be signed out. Drive backups are not deleted.',
+        'यह इस डिवाइस पर इस Google खाते का स्थानीय EduFrame डेटा स्थायी रूप से हटा देगा। आप साइन आउट हो जाएँगे। Drive बैकअप नहीं हटेंगे।',
+      );
+  String get deleteConfirmAction => _t('Delete and sign out', 'हटाएँ और साइन आउट');
+  String get cancel => _t('Cancel', 'रद्द करें');
+  String get legalSection => _t('Legal', 'कानूनी');
+  String get dataSafetySection => _t('Your data', 'आपका डेटा');
+  String get aboutApp => _t('About EduFrame', 'EduFrame के बारे में');
 
   // Onboarding
   String get onboardingSkip => _t('Skip', 'छोड़ें');

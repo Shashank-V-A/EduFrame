@@ -1,119 +1,78 @@
 # EduFrame (Flutter)
 
-Lesson plan notebook for teachers — built for planning tonight, teaching tomorrow.
+Lesson plan notebook for teachers — plan tonight, teach tomorrow.
+
+**Package:** `com.eduframe.app` · **Privacy:** https://eduframe.vercel.app/privacy.html · **Terms:** https://eduframe.vercel.app/terms.html
+
+## Features
+
+- Plan for tomorrow / today with structured lesson forms
+- Classes, weekly timetable, and local reminders
+- Search, duplicate, edit plans
+- PDF export and share
+- AI Assist (via signed Groq proxy)
+- Offline SQLite storage **scoped per Google account**
+- Backup / restore (Google Drive or file)
+- Delete-my-data from Settings
+- Hindi labels and dark mode
 
 ## Run the app
 
 ```powershell
-cd d:\Mobile-Dev
-& "C:\Users\SHASHANK V A\Downloads\flutter_windows_3.44.4-stable\flutter\bin\flutter.bat" run --dart-define=GROQ_API_KEY=your_groq_key
+cd d:\EduFrame
+flutter pub get
+flutter run --dart-define=GROQ_PROXY_URL=https://eduframe.vercel.app/api/groq
 ```
 
-Or after adding Flutter to PATH:
+Optional crash reporting (create a Sentry project and paste the DSN):
 
-```bash
-flutter run --dart-define=GROQ_API_KEY=your_groq_key
+```powershell
+flutter run --dart-define=GROQ_PROXY_URL=https://eduframe.vercel.app/api/groq --dart-define=SENTRY_DSN=https://YOUR_DSN
 ```
 
-Connect your Android phone with USB debugging on, or use an emulator from Android Studio.
+Connect an Android phone with USB debugging, or use an emulator.
 
 ## One-time setup
 
-### 1. Add Flutter to PATH
+1. Install Flutter stable and add it to `PATH`.
+2. Run `flutter doctor` and accept Android licenses: `flutter doctor --android-licenses`.
+3. Configure Google Sign-In OAuth clients for `com.eduframe.app` (see Google Cloud Console).
+4. Deploy / keep Vercel env vars: `GROQ_API_KEY`, and optionally `GOOGLE_WEB_CLIENT_ID` (defaults to the Web client used by the app).
 
-Move Flutter out of Downloads (recommended):
+## Play Store release
 
-```
-C:\src\flutter
-```
+See **[RELEASE_BUILD.md](RELEASE_BUILD.md)** for keystore + AAB steps.
 
-Then add `C:\src\flutter\bin` to your **User PATH** in Windows Environment Variables. Restart the terminal.
+Store listing copy and Data safety answers live under **[store/](store/)**.
 
-### 2. Fix Android SDK path (recommended)
+Legal pages are in `public/` and are served from the Vercel project (`/privacy.html`, `/terms.html`).
 
-`flutter doctor` warns that your SDK path has spaces (`SHASHANK V A`). Move it to:
-
-```
-C:\Android\sdk
-```
-
-Then set `ANDROID_HOME` to that path in Environment Variables.
-
-### 3. Accept Android licenses
-
-```bash
-flutter doctor --android-licenses
+```powershell
+flutter build appbundle --release --dart-define=GROQ_PROXY_URL=https://eduframe.vercel.app/api/groq
 ```
 
-## Features
+Requires `android/key.properties` and a release keystore (no debug fallback).
 
-- Plan for tomorrow / today
-- Structured lesson form (objectives, activities, homework, notes)
-- Search old plans
-- Duplicate and edit
-- PDF export for HOD
-- Offline SQLite storage
+## Project layout
 
-## Build APK for your mom (no Play Store yet)
-
-```bash
-flutter build apk --release
-```
-
-APK location: `build/app/outputs/flutter-apk/app-release.apk`
-
-Send this file to her phone and install directly.
+| Path | Role |
+|------|------|
+| `lib/` | Flutter app |
+| `android/` | Android project |
+| `api/groq.js` | Authenticated Groq proxy |
+| `public/` | Privacy & Terms HTML |
+| `store/` | Play listing text + graphics |
 
 ## Troubleshooting
 
-### "Lost connection to device" in Android Studio
+### Emulator debugger disconnects
 
-Usually the **debugger disconnects**, not a full app crash — especially on **Pixel API 36** emulators.
+Common on some API 36 images. Debug builds disable Impeller for stability; release keeps the default renderer. Cold-boot the emulator if needed.
 
-1. Pick **Pixel 10 API 36.1** in the device dropdown (not Windows desktop).
-2. Stop any running session (red square), then Run again.
-3. This project disables **Impeller/Vulkan** for emulator stability.
-4. If it happens again: the app may still be open on the emulator — check the emulator screen.
-5. Cold boot the emulator: **Device Manager → ⋮ → Cold Boot Now**.
+### Google OAuth
 
-### Google OAuth values
-
-Android package name:
-
-```text
-com.eduframe.app
-```
-
-Debug SHA-1:
-
-```text
-F8:BE:BB:2B:28:EC:FB:DB:DF:43:8B:B1:A4:E7:8F:77:D0:E8:4B:03
-```
-
-Configured Android client ID:
-
-```text
-669192163812-1955h44t69ueu40bqqt25v4o3jvp8k6a.apps.googleusercontent.com
-```
-
-Configured Web client ID:
-
-```text
-669192163812-1c4eglr4tpdpj0ovh2ff3i0fppucmjui.apps.googleusercontent.com
-```
-
-### Run from terminal (alternative to Android Studio)
-
-```powershell
-cd d:\Mobile-Dev
-& "C:\Users\SHASHANK V A\Downloads\flutter_windows_3.44.4-stable\flutter\bin\flutter.bat" run -d localhost:56837 --dart-define=GROQ_API_KEY=your_groq_key
-```
-
-Replace the device id with yours from `flutter devices`.
-
-## Project
-
-Flutter app **EduFrame** at `d:\Mobile-Dev` — open this folder in Android Studio.
+Android package: `com.eduframe.app`  
+Add **release** SHA-1 from your upload keystore to the Android OAuth client before Play testing.
 
 ---
 

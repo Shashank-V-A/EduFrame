@@ -1,0 +1,8 @@
+{
+  "name": "eduframe",
+  "private": true,
+  "description": "EduFrame Vercel API (Groq proxy) and static legal pages",
+  "dependencies": {
+    "google-auth-library": "^9.15.1"
+  }
+}

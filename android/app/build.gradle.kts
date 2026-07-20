@@ -45,14 +45,34 @@ android {
 
     buildTypes {
         release {
-            signingConfig = if (hasReleaseKeystore) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
+            // Do not fall back to the debug keystore for Play uploads.
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
             }
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
+    }
+}
+
+afterEvaluate {
+    val requireReleaseKeystore = Action<Task> {
+        if (!hasReleaseKeystore) {
+            throw GradleException(
+                "Missing android/key.properties. Create a release keystore before building a release APK/AAB. See RELEASE_BUILD.md.",
+            )
+        }
+    }
+    listOf(
+        "assembleRelease",
+        "bundleRelease",
+        "assembleReleaseUnitTest",
+    ).forEach { taskName ->
+        tasks.findByName(taskName)?.doFirst(requireReleaseKeystore)
     }
 }
 

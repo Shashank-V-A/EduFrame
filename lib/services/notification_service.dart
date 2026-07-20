@@ -42,9 +42,19 @@ class NotificationService {
         ?.requestExactAlarmsPermission();
   }
 
+  Future<void> cancelAll() async {
+    await init();
+    await _plugin.cancelAll();
+  }
+
   Future<void> rescheduleFromDatabase() async {
+    if (DatabaseService.instance.activeUserId == null) {
+      await cancelAll();
+      return;
+    }
+
     if (!await SettingsService.instance.notificationsEnabled()) {
-      await _plugin.cancelAll();
+      await cancelAll();
       return;
     }
 
